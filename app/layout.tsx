@@ -2,14 +2,14 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import SiteHeader from "@/components/site-header"
+import SiteFooter from "@/components/site-footer"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Formulario de Registro MOD",
-  description: "Formulario de registro para la fiesta de lanzamiento del 2do Aniversario Luxury",
-    generator: 'v0.dev'
+  title: "MG-Company | Artist Management & Booking Agency",
+  description: "Leading talent agency representing the finest artists in Latin America, specializing in electronic, urban, and alternative music.",
 }
 
 export default function RootLayout({
@@ -18,11 +18,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className="scroll-smooth">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <SiteHeader />
+        <main className="min-h-screen pt-16 md:pt-20 lg:pt-24">
           {children}
-        </ThemeProvider>
+        </main>
+        <SiteFooter />
       </body>
     </html>
   )

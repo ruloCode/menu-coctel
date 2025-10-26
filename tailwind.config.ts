@@ -19,6 +19,15 @@ const config = {
       },
     },
     extend: {
+      fontWeight: {
+        'black': '900',
+        'extrabold': '800',
+      },
+      fontSize: {
+        'display': ['clamp(3rem, 8vw, 7.5rem)', { lineHeight: '0.9', letterSpacing: '-0.02em' }],
+        'hero': ['clamp(2.5rem, 6vw, 5rem)', { lineHeight: '0.95', letterSpacing: '-0.01em' }],
+        'heading': ['clamp(1.5rem, 4vw, 3rem)', { lineHeight: '1.1' }],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
