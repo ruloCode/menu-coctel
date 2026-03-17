@@ -106,7 +106,7 @@ export default function AudioPlayer() {
      
 
       <motion.div
-        className="fixed bottom-0 left-0 right-0 bg-[#2a4bbd] border-t-4 border-[#f0d264] z-50"
+        className="fixed bottom-0 left-0 right-0 bg-[#E8200C] border-t-4 border-[#FFFFFF] z-50"
         initial={{ y: expanded ? 0 : "calc(100% - 60px)" }}
         animate={{ y: expanded ? 0 : "calc(100% - 60px)" }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -119,10 +119,10 @@ export default function AudioPlayer() {
             <div
               className={`w-3 h-3 rounded-full mr-3 ${isPlaying ? "bg-red-500 animate-pulse" : "bg-gray-400"}`}
             ></div>
-            <div className="bg-[#f0d264] text-[#2a4bbd] px-4 py-1 rounded-sm mr-4">
+            <div className="bg-[#FFFFFF] text-[#E8200C] px-4 py-1 rounded-sm mr-4">
               <span className="text-sm font-black tracking-widest">ON AIR</span>
             </div>
-            <span className="font-bold text-[#f0d264]">MOD RADIO</span>
+            <span className="font-bold text-[#FFFFFF]">MOD RADIO</span>
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -132,7 +132,7 @@ export default function AudioPlayer() {
               }}
               variant="ghost"
               size="sm"
-              className="h-10 w-10 rounded-full bg-[#f0d264] hover:bg-[#e5c85a] text-[#2a4bbd] p-0"
+              className="h-10 w-10 rounded-full bg-[#FFFFFF] hover:bg-[#E8200C] text-[#E8200C] p-0"
             >
               {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </Button>
@@ -142,13 +142,13 @@ export default function AudioPlayer() {
         <AnimatePresence>
           {expanded && (
             <motion.div
-              className="p-6 bg-[#1a3bad] space-y-4"
+              className="p-6 bg-[#111111] space-y-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <div className="flex justify-between items-center">
-                <div className="text-[#f0d264] font-bold">
+                <div className="text-[#FFFFFF] font-bold">
                   <h3 className="text-lg">FIESTA DE LANZAMIENTO</h3>
                   <p className="text-sm text-gray-300">2do Aniversario Luxury</p>
                 </div>
@@ -157,7 +157,7 @@ export default function AudioPlayer() {
                     onClick={toggleMute}
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-[#2a4bbd] p-1 h-8 w-8 rounded-full"
+                    className="text-white hover:bg-[#E8200C] p-1 h-8 w-8 rounded-full"
                   >
                     {volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                   </Button>
@@ -185,7 +185,7 @@ export default function AudioPlayer() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-12 w-12 rounded-full bg-[#2a4bbd] hover:bg-[#3a5bcd] text-white p-0"
+                  className="h-12 w-12 rounded-full bg-[#E8200C] hover:bg-[#cc1a0a] text-white p-0"
                   onClick={(e) => {
                     e.stopPropagation()
                     if (audioRef.current) {
@@ -202,14 +202,14 @@ export default function AudioPlayer() {
                   }}
                   variant="ghost"
                   size="sm"
-                  className="h-16 w-16 rounded-full bg-[#f0d264] hover:bg-[#e5c85a] text-[#2a4bbd] p-0"
+                  className="h-16 w-16 rounded-full bg-[#FFFFFF] hover:bg-[#E8200C] text-[#E8200C] p-0"
                 >
                   {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-12 w-12 rounded-full bg-[#2a4bbd] hover:bg-[#3a5bcd] text-white p-0"
+                  className="h-12 w-12 rounded-full bg-[#E8200C] hover:bg-[#cc1a0a] text-white p-0"
                   onClick={(e) => {
                     e.stopPropagation()
                     if (audioRef.current) {

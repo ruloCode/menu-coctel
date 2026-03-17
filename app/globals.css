@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    /* Dark minimalist theme - Earth Agency inspired */
-    --background: 0 0% 0%; /* Pure black */
+    /* MG Company Group Brand Colors */
+    --background: 0 0% 7%; /* #111111 */
     --foreground: 0 0% 100%; /* Pure white */
-    --card: 0 0% 5%; /* Very dark gray for cards */
+    --card: 0 0% 10%; /* Dark gray for cards */
     --card-foreground: 0 0% 100%;
-    --popover: 0 0% 0%;
+    --popover: 0 0% 7%;
     --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%; /* White for primary actions */
-    --primary-foreground: 0 0% 0%; /* Black text on white */
+    --primary: 4 91% 47%; /* #E8200C - MG Red */
+    --primary-foreground: 0 0% 100%; /* White text on red */
     --secondary: 0 0% 20%; /* Dark gray */
     --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 80%; /* Light gray for muted text */
+    --muted: 0 0% 80%;
     --muted-foreground: 0 0% 60%;
-    --accent: 0 0% 15%; /* Slightly lighter than background for hover */
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 20%; /* Dark gray borders */
+    --border: 0 0% 20%;
     --input: 0 0% 15%;
-    --ring: 0 0% 100%; /* White focus ring */
-    --radius: 0rem; /* Sharp corners for minimal look */
+    --ring: 4 91% 47%; /* Red focus ring */
+    --radius: 0rem;
   }
 }
 
@@ -34,36 +34,40 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-extrabold tracking-tight;
+    @apply font-heading tracking-tight;
+    font-family: var(--font-bebas), sans-serif;
   }
 }
 
-/* Custom utility classes inspired by Earth Agency */
+/* Custom utility classes */
 @layer utilities {
   .text-display {
     font-size: clamp(3rem, 8vw, 8rem);
     line-height: 0.9;
     letter-spacing: -0.02em;
-    font-weight: 900;
+    font-weight: 400;
     text-transform: uppercase;
+    font-family: var(--font-bebas), sans-serif;
   }
 
   .text-hero {
     font-size: clamp(2.5rem, 6vw, 5rem);
     line-height: 0.95;
     letter-spacing: -0.01em;
-    font-weight: 800;
+    font-weight: 400;
     text-transform: uppercase;
+    font-family: var(--font-bebas), sans-serif;
   }
 
   .text-heading {
     font-size: clamp(1.5rem, 4vw, 3rem);
     line-height: 1.1;
-    font-weight: 800;
+    font-weight: 400;
+    font-family: var(--font-bebas), sans-serif;
   }
 
   /* Text stroke effect for hero */
@@ -186,17 +190,17 @@ html {
     grid-auto-rows: 300px;
     gap: 1rem;
   }
-  
+
   .tile-shape-square {
     grid-column: span 1;
     grid-row: span 1;
   }
-  
+
   .tile-shape-landscape {
     grid-column: span 1;
     grid-row: span 1;
   }
-  
+
   .tile-shape-portrait {
     grid-column: span 1;
     grid-row: span 1;
@@ -210,17 +214,17 @@ html {
     grid-auto-rows: 280px;
     gap: 1.25rem;
   }
-  
+
   .tile-shape-square {
     grid-column: span 1;
     grid-row: span 1;
   }
-  
+
   .tile-shape-landscape {
     grid-column: span 2;
     grid-row: span 1;
   }
-  
+
   .tile-shape-portrait {
     grid-column: span 1;
     grid-row: span 2;
@@ -234,17 +238,17 @@ html {
     grid-auto-rows: 280px;
     gap: 1.5rem;
   }
-  
+
   .tile-shape-square {
     grid-column: span 1;
     grid-row: span 1;
   }
-  
+
   .tile-shape-landscape {
     grid-column: span 2;
     grid-row: span 1;
   }
-  
+
   .tile-shape-portrait {
     grid-column: span 1;
     grid-row: span 2;
@@ -269,30 +273,3 @@ html {
   }
 }
 
-/* Noise/grain texture overlay */
-@keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5%, -10%); }
-  20% { transform: translate(-15%, 5%); }
-  30% { transform: translate(7%, -25%); }
-  40% { transform: translate(-5%, 25%); }
-  50% { transform: translate(-15%, 10%); }
-  60% { transform: translate(15%, 0%); }
-  70% { transform: translate(0%, 15%); }
-  80% { transform: translate(3%, 35%); }
-  90% { transform: translate(-10%, 10%); }
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0.03;
-  z-index: 1;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  animation: grain 8s steps(10) infinite;
-}

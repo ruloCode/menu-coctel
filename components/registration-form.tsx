@@ -87,10 +87,10 @@ export default function RegistrationForm() {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-10"
             >
-              <h3 className="text-2xl font-bold text-[#2a4bbd] mb-2">¡REGISTRO EXITOSO!</h3>
-              <p className="text-[#2a4bbd]">Gracias por registrarte. ¡Te esperamos en nuestra fiesta!</p>
-              <p className="text-xs mt-8 text-[#2a4bbd]">PRESENTA EL CÓDIGO QR QUE SERÁ ENVIADO A TU NÚMERO DE CONTACTO. ESTE CÓDIGO QR ES ÚNICO E INTRANSFERIBLE</p>
-              <p className="text-xs mt-2 text-[#2a4bbd]">NOS RESERVAMOS EL DERECHO DE ADMICIÓN Y PERMANENCIA</p>
+              <h3 className="text-2xl font-bold text-[#E8200C] mb-2">¡REGISTRO EXITOSO!</h3>
+              <p className="text-[#E8200C]">Gracias por registrarte. ¡Te esperamos en nuestra fiesta!</p>
+              <p className="text-xs mt-8 text-[#E8200C]">PRESENTA EL CÓDIGO QR QUE SERÁ ENVIADO A TU NÚMERO DE CONTACTO. ESTE CÓDIGO QR ES ÚNICO E INTRANSFERIBLE</p>
+              <p className="text-xs mt-2 text-[#E8200C]">NOS RESERVAMOS EL DERECHO DE ADMICIÓN Y PERMANENCIA</p>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6  translate-y-[180px]">
@@ -107,7 +107,7 @@ export default function RegistrationForm() {
                       value={formData.nombre}
                       onChange={handleChange}
                       required
-                      className="bg-white border-[#2a4bbd] focus:border-[#f0d264] text-black max-w-[400px] mx-auto h-10 rounded-full"
+                      className="bg-white border-[#E8200C] focus:border-[#E8200C] text-black max-w-[400px] mx-auto h-10 rounded-full"
                     />
                   </motion.div>
                 </div>
@@ -124,7 +124,7 @@ export default function RegistrationForm() {
                       value={formData.celular}
                       onChange={handleChange}
                       required
-                      className="bg-white border-[#2a4bbd] focus:border-[#f0d264] text-black max-w-[400px] mx-auto h-10 rounded-full"
+                      className="bg-white border-[#E8200C] focus:border-[#E8200C] text-black max-w-[400px] mx-auto h-10 rounded-full"
                     />
                   </motion.div>
                 </div>
@@ -141,7 +141,7 @@ export default function RegistrationForm() {
                       value={formData.correo}
                       onChange={handleChange}
                       required
-                      className="bg-white border-[#2a4bbd] focus:border-[#f0d264] text-black max-w-[400px] mx-auto h-10 rounded-full"
+                      className="bg-white border-[#E8200C] focus:border-[#E8200C] text-black max-w-[400px] mx-auto h-10 rounded-full"
                     />
                   </motion.div>
                 </div>
@@ -157,7 +157,7 @@ export default function RegistrationForm() {
                       value={formData.genero}
                       onChange={handleChange}
                       required
-                      className="bg-white border-[#2a4bbd] focus:border-[#f0d264] text-black max-w-[400px] mx-auto h-10 rounded-full"
+                      className="bg-white border-[#E8200C] focus:border-[#E8200C] text-black max-w-[400px] mx-auto h-10 rounded-full"
                     />
                   </motion.div>
                 </div>
@@ -171,7 +171,7 @@ export default function RegistrationForm() {
                       id="cumpleanos"
                       name="cumpleanos"
                       value={date ? format(date, "dd/MM/yyyy", { locale: es }) : ""}
-                      className="bg-white border-[#2a4bbd] focus:border-[#f0d264] text-black max-w-[400px] mx-auto h-10 rounded-full"
+                      className="bg-white border-[#E8200C] focus:border-[#E8200C] text-black max-w-[400px] mx-auto h-10 rounded-full"
                       onClick={() => document.getElementById('calendar-trigger')?.click()}
                       readOnly
                     />
@@ -179,7 +179,7 @@ export default function RegistrationForm() {
                       <PopoverTrigger asChild>
                         <button id="calendar-trigger" className="hidden">Abrir calendario</button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-white border-[#2a4bbd]">
+                      <PopoverContent className="w-auto p-0 bg-white border-[#E8200C]">
                         <Calendar
                           mode="single"
                           selected={date}

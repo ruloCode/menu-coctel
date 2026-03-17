@@ -1,0 +1,2 @@
+[  120578ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://o22381.ingest.us.sentry.io/api/4505164808585216/envelope/?sentry_version=7&sentry_key=4cc707ab12ea4779b417479c0550a5cb&sentry_client=sentry.javascript.nextjs%2F10.32.1:0
+[  120578ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://o22381.ingest.us.sentry.io/api/4505164808585216/envelope/?sentry_version=7&sentry_key=4cc707ab12ea4779b417479c0550a5cb&sentry_client=sentry.javascript.nextjs%2F10.32.1:0

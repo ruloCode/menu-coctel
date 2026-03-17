@@ -1,138 +1,77 @@
-import type { Agent, Artist, ContactInfo } from "./types"
+import type { Agent, Artist, ContactInfo, BusinessUnit, MGFlowShow, GalleryItem, TeamMember } from "./types"
 
-// Mock Agents
+// Mock Agents / Team
 export const mockAgents: Agent[] = [
   {
     id: "1",
-    name: "Sofia Martinez",
-    email: "sofia@mg-company.com",
-    bio: "Senior booking agent specializing in electronic and urban music.",
-  },
-  {
-    id: "2",
-    name: "Carlos Rivera",
-    email: "carlos@mg-company.com",
-    bio: "Booking agent focused on Latin and international artists.",
-  },
-  {
-    id: "3",
-    name: "Ana Gutierrez",
-    email: "ana@mg-company.com",
-    bio: "Agent specializing in emerging talent and festival bookings.",
+    name: "MG Management",
+    email: "management@mgcompanygroup.com",
+    bio: "Gestion integral de artistas y booking.",
   },
 ]
 
-// Mock Artists
+// Mock Artists - MG Company Group roster
 export const mockArtists: Artist[] = [
   {
-    id: "1",
-    slug: "luna-morales",
-    name: "Luna Morales",
-    bio: "Luna Morales is a genre-defying electronic producer and DJ from Medellín, blending traditional Colombian rhythms with cutting-edge techno and house music.",
-    bio_full: "Luna Morales emerged from Medellín's underground music scene in 2019, quickly gaining recognition for her innovative sound that bridges the gap between traditional cumbia, champeta, and modern electronic music. Her debut album 'Noche Eléctrica' topped charts across Latin America and earned critical acclaim internationally. Luna has performed at major festivals including Coachella, Primavera Sound, and Sónar, and has collaborated with artists like Bomba Estéreo and Nicola Cruz. Her energetic live performances combine live percussion with electronic production, creating an immersive experience that celebrates Colombian culture while pushing musical boundaries.",
-    location: "Medellín, Colombia",
-    label: "Palenque Records",
-    agent_id: "1",
-    photo_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/lunamoralesmusic",
-      spotify: "https://open.spotify.com/artist/example",
-      soundcloud: "https://soundcloud.com/lunamorales",
-      youtube: "https://youtube.com/@lunamorales",
-    },
-    media: {
-      audio: ["https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1234567890"],
-      video: ["https://www.youtube.com/embed/dQw4w9WgXcQ"],
-    },
-    featured: true,
-    shape: "landscape",
-  },
-  {
     id: "2",
-    slug: "santos-collective",
-    name: "Santos Collective",
-    bio: "Santos Collective is a five-piece band from Bogotá creating a unique fusion of jazz, cumbia, and psychedelic rock. Known for their explosive live shows and socially conscious lyrics.",
-    bio_full: "Formed in 2017, Santos Collective has become one of Colombia's most exciting live acts. The band consists of five musicians from diverse musical backgrounds who came together with a shared vision of creating music that honors Colombian musical traditions while exploring new sonic territories. Their sound draws from jazz improvisation, cumbia rhythms, and psychedelic rock textures, creating an entirely unique musical experience. Their sophomore album 'Río Dorado' was nominated for a Latin Grammy and has been praised by critics as 'a revolutionary reimagining of Colombian music.' The band has toured extensively across South America and Europe, bringing their high-energy performances to audiences worldwide.",
-    location: "Bogotá, Colombia",
-    label: "Independent",
-    agent_id: "2",
-    photo_url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&h=800&fit=crop",
+    slug: "miguelacho-tf",
+    name: "Miguelacho TF",
+    bio: "Productor y artista con ADN caribeno, costero y afro. Referencia de la musica caribena contemporanea con colaboraciones junto a Flaco Flow, Jony Roy, Sambo Prod y Kartoonz.",
+    bio_full: "Miguelacho TF es un productor y artista con ADN caribeno—costero y afro—cuyo proyecto nacio de la mezcla entre su nombre de pila, \"Miguel\", y la jerga cartagenera para Cartagena, \"Cartacho\"; \"TF\" viene de The Fat. Se formo de manera autodidacta desde 2010, fascinado por el Passa Passa Sound System de DJ Dever y el mundo de las pistas y la grabacion. Hoy es una referencia cuando se habla de musica caribena contemporanea y ha trabajado con talentos de Bogota y Soacha. Como productor, ha colaborado con Flaco Flow (Flaco Flow & Melanina), Jony Roy, Sambo Prod, Kartoonz (productor de Arcangel), entre otros. Su mensaje vital: la vida es una; con fe, salud y disciplina siempre hay camino para salir adelante.",
+    location: "Cartagena, Colombia",
+    agent_id: "1",
+    photo_url: "/artists/miguelacho-tf/tf-01.jpg",
+    hero_image_url: "/artists/miguelacho-tf/tf-02.jpg",
     social_links: {
-      instagram: "https://instagram.com/santoscollective",
-      spotify: "https://open.spotify.com/artist/example2",
-      youtube: "https://youtube.com/@santoscollective",
-      website: "https://santoscollective.co",
+      instagram: "https://instagram.com/miguelachotf",
+      spotify: "https://open.spotify.com/artist/miguelachotf",
+      youtube: "https://youtube.com/@miguelachotf",
     },
     media: {
       audio: [],
-      video: ["https://www.youtube.com/embed/example2"],
+      video: [],
     },
     featured: true,
     shape: "portrait",
+    spotify_embed: "https://open.spotify.com/embed/artist/18i7LjiyQTMxEamDZ6OJPo?utm_source=generator&theme=0",
+    spotify_album_embed: "https://open.spotify.com/embed/album/25uxLpwKRe5GsORIe1xddW?utm_source=generator&theme=0",
   },
   {
     id: "3",
-    slug: "dj-phoenix",
-    name: "DJ Phoenix",
-    bio: "Rising star in the Latin trap and reggaeton scene. DJ Phoenix has become a fixture in Bogotá's nightlife, known for his high-energy sets and genre-bending mixes.",
-    bio_full: "DJ Phoenix started his career at age 16 in the clubs of Bogotá, quickly developing a reputation for his technical skills and ability to read a crowd. His unique style blends reggaeton, trap, house, and traditional Colombian music, creating sets that are both nostalgic and forward-thinking. Phoenix has been a resident DJ at some of Bogotá's most prestigious clubs and has shared the stage with international acts like Bad Bunny, J Balvin, and Bizarrap. He recently launched his own record label 'Phoenix Rising' to support emerging Latin urban artists.",
-    location: "Bogotá, Colombia",
+    slug: "bombo-hustle",
+    name: "Bombo Hustle",
+    bio: "Artista de reggae colombiano que fusiona las raices jamaiquinas con la energia latina, el dancehall y los sonidos del Caribe contemporaneo.",
+    bio_full: "Bombo Hustle es reggae en estado puro, pero con alma colombiana. Su musica bebe directamente de las raices jamaiquinas del genero—el roots, el dub, el dancehall—y las mezcla con la energia de las calles latinas, creando un sonido que es tanto un homenaje a los clasicos como una declaracion de identidad propia.\n\nDesde sus inicios, Bombo encontro en el reggae mas que un genero: una filosofia de vida. Sus letras hablan de resistencia, de comunidad, de las luchas cotidianas y de la celebracion de estar vivo. Con riddims que hacen mover la cabeza y melodias que se quedan en la mente, cada track suyo es una invitacion a conectar con algo mas grande que uno mismo.\n\nEn tarima, Bombo Hustle se transforma. Su presencia escenica combina la vibra relajada del reggae con una intensidad contagiosa que enciende cualquier espacio, desde un sound system callejero hasta un festival multitudinario. Es esa dualidad—paz interior y fuego exterior—lo que lo hace unico en la escena.\n\nComo parte de MG Company Group, Bombo Hustle representa la diversidad sonora del roster y demuestra que el reggae colombiano tiene voz propia en el panorama musical latino. Su mensaje es claro: buenas vibras, musica real y siempre adelante.",
+    location: "Colombia",
     agent_id: "1",
-    photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1571266028243-d220fec7fe85?w=1200&h=800&fit=crop",
+    photo_url: "/artists/bombo-hustle/bombo-01.jpg",
+    hero_image_url: "/artists/bombo-hustle/bombo-02.jpg",
     social_links: {
-      instagram: "https://instagram.com/djphoenixco",
-      spotify: "https://open.spotify.com/artist/example3",
-      soundcloud: "https://soundcloud.com/djphoenix",
-      tiktok: "https://tiktok.com/@djphoenix",
+      instagram: "https://instagram.com/bombohustle",
+      spotify: "https://open.spotify.com/artist/bombohustle",
+      youtube: "https://youtube.com/@bombohustle",
     },
     media: {
-      audio: ["https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/example"],
+      audio: [],
       video: [],
     },
-    featured: false,
-    shape: "square",
+    featured: true,
+    shape: "landscape",
+    spotify_embed: "https://open.spotify.com/embed/artist/27f9q813v2dChRMDoQti5O?utm_source=generator",
   },
   {
     id: "4",
-    slug: "valeria-sound",
-    name: "Valeria Sound",
-    bio: "Singer-songwriter blending indie pop with traditional Colombian folk music. Her ethereal voice and poetic lyrics have captivated audiences across Latin America.",
-    location: "Cali, Colombia",
-    label: "Llorona Records",
-    agent_id: "3",
-    photo_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=1200&h=800&fit=crop",
+    slug: "abner-dk",
+    name: "Abner DK",
+    bio: "Rapero y cantautor bogotano que convierte cada cancion en una experiencia sensorial. Su musica nace entre versos suaves, casi hablados, y melodias que viajan del rap a los tintes latinos, boleros experimentales y ritmos urbanos.",
+    bio_full: "Abner DK es un rapero y cantautor bogotano que convierte cada cancion en una experiencia sensorial. Su musica nace entre versos suaves, casi hablados, y melodias que viajan del rap a los tintes latinos, los boleros experimentales y los ritmos urbanos que respiran la diversidad de su ciudad.\n\nDesde nino, Abner encontro en el piano clasico el lenguaje perfecto para expresar lo que no cabia en palabras. Hoy, con 27 anos, transforma esa sensibilidad en un sonido propio, intimo y poetico, que recuerda a un Mac Miller latino y a las historias crudas de Cancerbero, pero con un sello narrativo personal.\n\nSu primer album, \"Agua\", es un viaje de amor, desamor y duelo. Un ciclo vital contado en canciones que fluyen como la lluvia, crecen como el diluvio y terminan con la luz radiante del sol. \"Agua\" es un homenaje a su madre, a la fragilidad de la vida y a la fuerza de empezar de nuevo.\n\nEn el escenario, Abner imagina sus shows como obras teatrales intimas, con la energia de una banda y la puesta en escena donde la musica se une al baile y al performance. Su lema, \"one live is all you get\", resume su propuesta: vivir y arriesgarse con autenticidad, porque la vida, como el agua, siempre fluye y se transforma.",
+    location: "Bogota, Colombia",
+    agent_id: "1",
+    photo_url: "/artists/abner-dk/abner-01.jpg",
+    hero_image_url: "/artists/abner-dk/abner-02.png",
     social_links: {
-      instagram: "https://instagram.com/valeriasound",
-      spotify: "https://open.spotify.com/artist/example4",
-      youtube: "https://youtube.com/@valeriasound",
-      apple_music: "https://music.apple.com/artist/valeria-sound",
-    },
-    media: {
-      audio: [],
-      video: ["https://www.youtube.com/embed/example4"],
-    },
-    featured: false,
-    shape: "portrait",
-  },
-  {
-    id: "5",
-    slug: "el-ritmo",
-    name: "El Ritmo",
-    bio: "Veteran salsa and tropical music ensemble bringing classic Colombian rhythms to modern audiences. With over 20 years of experience, they remain at the forefront of traditional music.",
-    location: "Barranquilla, Colombia",
-    label: "Tropical Records",
-    agent_id: "2",
-    photo_url: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/elritmooficial",
-      spotify: "https://open.spotify.com/artist/example5",
-      facebook: "https://facebook.com/elritmomusic",
-      website: "https://elritmo.com.co",
+      instagram: "https://instagram.com/abnerdk",
+      spotify: "https://open.spotify.com/artist/abnerdk",
     },
     media: {
       audio: [],
@@ -140,22 +79,26 @@ export const mockArtists: Artist[] = [
     },
     featured: false,
     shape: "square",
+    spotify_embed: "https://open.spotify.com/embed/artist/7wXE9ROf93Y39SOKmTphYH?utm_source=generator",
+    spotify_album_embed: "https://open.spotify.com/embed/album/6USG3UdSLTO0Rwq4DiKBB6?utm_source=generator",
+    discography: [
+      { title: "Agua", year: 2024, spotify_url: "https://open.spotify.com" },
+    ],
   },
   {
-    id: "6",
-    slug: "neon-nights",
-    name: "Neon Nights",
-    bio: "Indie rock band with synthwave influences creating atmospheric soundscapes. Their debut album 'Electric Dreams' gained cult following across Colombia and beyond.",
-    location: "Medellín, Colombia",
-    label: "Independent",
-    agent_id: "3",
-    photo_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1501612780327-45045538702b?w=1200&h=800&fit=crop",
+    id: "7",
+    slug: "andres-santana",
+    name: "Andres Santana",
+    bio: "Cantautor colombiano que fusiona baladas pop y musica romantica con ritmos afro y caribenos, creando un sonido calido y envolvente.",
+    bio_full: "Andres Santana es un cantautor colombiano cuya musica vive en la interseccion entre las baladas pop, la romantica latina y los ritmos afro-caribenos. Su propuesta nace de una sensibilidad melodica profunda, heredada de los grandes baladistas, pero con los pies firmemente plantados en la riqueza ritmica del Caribe y la costa atlantica.\n\nCon una voz que transmite intimidad y calidez, Andres construye canciones que hablan de amor, nostalgia y conexion humana, envueltas en arreglos donde conviven las guitarras acusticas con percusiones afro, marimbas y sintetizadores que le dan un aire contemporaneo a lo tradicional.\n\nSu sonido es un puente entre generaciones: quienes crecieron con los boleros y las baladas encuentran en su musica un eco familiar, mientras que las nuevas audiencias descubren en el una forma fresca de vivir la romantica latina. Cada cancion de Andres Santana es una invitacion a sentir, a dejarse llevar por melodias que abrazan y ritmos que mueven.\n\nComo parte del roster de MG Company Group, Andres Santana representa la versatilidad y la riqueza musical colombiana, demostrando que la musica romantica puede ser innovadora sin perder su esencia emotiva.",
+    location: "Colombia",
+    agent_id: "1",
+    photo_url: "/artists/andres-santana/andres-01.jpg",
+    hero_image_url: "/artists/andres-santana/andres-02.jpg",
     social_links: {
-      instagram: "https://instagram.com/neonnightsband",
-      spotify: "https://open.spotify.com/artist/example6",
-      youtube: "https://youtube.com/@neonnights",
-      website: "https://neonnights.band",
+      instagram: "https://instagram.com/andressantana",
+      spotify: "https://open.spotify.com/artist/andressantana",
+      youtube: "https://youtube.com/@andressantana",
     },
     media: {
       audio: [],
@@ -163,165 +106,242 @@ export const mockArtists: Artist[] = [
     },
     featured: true,
     shape: "landscape",
-  },
-  {
-    id: "7",
-    slug: "maria-del-mar",
-    name: "María del Mar",
-    bio: "Afro-Colombian vocalist and percussionist blending ancestral rhythms with contemporary electronic production.",
-    location: "Cartagena, Colombia",
-    label: "Ancestral Sounds",
-    agent_id: "1",
-    photo_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/mariadelmarmusic",
-      spotify: "https://open.spotify.com/artist/example7",
-    },
-    media: {
-      audio: [],
-      video: [],
-    },
-    featured: false,
-    shape: "square",
+    spotify_embed: "https://open.spotify.com/embed/artist/1IBZOpSsUlYvrO0931F8Kd?utm_source=generator",
+    stream_embed: "https://untitled.stream/embed/nZ69MN2H8eAd",
   },
   {
     id: "8",
-    slug: "bass-collective",
-    name: "Bass Collective",
-    bio: "Underground bass music duo pushing the boundaries of dubstep and drum & bass with Colombian influences.",
-    location: "Bogotá, Colombia",
+    slug: "solofk",
+    name: "SoloFK",
+    bio: "Artista urbano cristiano de Soacha que canaliza sus luchas internas y su fe en musica honesta y cruda. Su propuesta fusiona rap, trap y sonidos urbanos con letras de esperanza y vulnerabilidad.",
+    bio_full: "Franki Leonardo Molina Bernal, mejor conocido en la musica urbana como SoloFK, nace un 22 de diciembre de 1997 en Soacha, Cundinamarca, Colombia. Comienza su carrera musical a los 16 anos, encontrando en la musica el canal perfecto para expresar lo que las palabras solas no podian.\n\nA causa de sus problemas de depresion y ansiedad, SoloFK decide tornar su mirada a Dios a los 13 anos y, con altos y bajos, decide dedicar su vida a escribir canciones del amor de Jesus y sus problemas internos a traves de la musica urbana. No es musica que predica desde un pulpito: es musica que habla desde la trinchera, desde la lucha real, desde las noches oscuras y los amaneceres que llegan cuando ya no los esperas.\n\nCanciones como \"Desahogo 1\", \"Desahogo 2\" y \"Desahogo 3\" se convirtieron en un espacio de catarsis compartida con su audiencia—temas donde la vulnerabilidad es la fuerza. \"Montana Rusa\" y \"Nunca Imagine\" capturan los vaivenes emocionales de quien pelea con sus demonios pero elige seguir adelante.\n\nSu album \"MENTE DE VIAJE\" es la obra que mejor define su propuesta: un recorrido por los paisajes internos de alguien que ha decidido ser transparente con su dolor y con su fe. Cada track es un capitulo de una historia que muchos viven pero pocos se atreven a contar.\n\nSoloFK demuestra que la musica urbana puede ser profundamente espiritual sin dejar de ser autentica, callejera y real. Su mensaje resuena con una generacion que busca algo mas que beats: busca verdad.",
+    location: "Soacha, Colombia",
     agent_id: "1",
-    photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&h=800&fit=crop",
+    photo_url: "/artists/solofk/solofk-01.jpg",
+    hero_image_url: "/artists/solofk/solofk-02.jpg",
     social_links: {
-      instagram: "https://instagram.com/basscollective",
-      spotify: "https://open.spotify.com/artist/example8",
-      soundcloud: "https://soundcloud.com/basscollective",
+      instagram: "https://instagram.com/solofk",
+      spotify: "https://open.spotify.com/artist/solofk",
+      youtube: "https://youtube.com/@solofk",
     },
     media: {
-      audio: ["https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/example"],
+      audio: [],
       video: [],
     },
     featured: false,
     shape: "portrait",
-  },
-  {
-    id: "9",
-    slug: "camila-reyes",
-    name: "Camila Reyes",
-    bio: "Alternative R&B artist with a unique voice that blends soul, jazz, and urban music from Cali's vibrant scene.",
-    location: "Cali, Colombia",
-    label: "Neo Soul Records",
-    agent_id: "2",
-    photo_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/camilareyes",
-      spotify: "https://open.spotify.com/artist/example9",
-      youtube: "https://youtube.com/@camilareyes",
-    },
-    media: {
-      audio: [],
-      video: ["https://www.youtube.com/embed/example9"],
-    },
-    featured: false,
-    shape: "landscape",
-  },
-  {
-    id: "10",
-    slug: "tropico-band",
-    name: "Trópico Band",
-    bio: "Modern tropical music ensemble reinventing cumbia, porro, and champeta for the 21st century.",
-    location: "Barranquilla, Colombia",
-    label: "Coastal Records",
-    agent_id: "2",
-    photo_url: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/tropicoband",
-      spotify: "https://open.spotify.com/artist/example10",
-      facebook: "https://facebook.com/tropicoband",
-    },
-    media: {
-      audio: [],
-      video: [],
-    },
-    featured: false,
-    shape: "square",
-  },
-  {
-    id: "11",
-    slug: "diego-underground",
-    name: "Diego Underground",
-    bio: "Techno producer and live performer known for hypnotic sets that blend industrial sounds with Latin rhythms.",
-    location: "Medellín, Colombia",
-    agent_id: "3",
-    photo_url: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1571266028243-d220fec7fe85?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/diegounderground",
-      spotify: "https://open.spotify.com/artist/example11",
-      soundcloud: "https://soundcloud.com/diegounderground",
-    },
-    media: {
-      audio: ["https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/example"],
-      video: [],
-    },
-    featured: false,
-    shape: "portrait",
-  },
-  {
-    id: "12",
-    slug: "la-banda-de-oro",
-    name: "La Banda de Oro",
-    bio: "Traditional brass band from the Pacific coast bringing authentic Colombian folklore to international stages.",
-    location: "Buenaventura, Colombia",
-    label: "Pacific Records",
-    agent_id: "3",
-    photo_url: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=800&h=1000&fit=crop",
-    hero_image_url: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1200&h=800&fit=crop",
-    social_links: {
-      instagram: "https://instagram.com/labandadeoro",
-      spotify: "https://open.spotify.com/artist/example12",
-      youtube: "https://youtube.com/@labandadeoro",
-    },
-    media: {
-      audio: [],
-      video: [],
-    },
-    featured: false,
-    shape: "square",
+    spotify_embed: "https://open.spotify.com/embed/artist/42UjaROPpLRPzMJOn0Nq47?utm_source=generator",
+    spotify_album_embed: "https://open.spotify.com/embed/album/5wKtryzhYarBLkp39kLleI?utm_source=generator",
+    discography: [
+      { title: "MENTE DE VIAJE", year: 2024, spotify_url: "https://open.spotify.com" },
+    ],
   },
 ]
 
-// Populate agent references in artists
+// Populate agent references
 mockArtists.forEach(artist => {
   artist.agent = mockAgents.find(agent => agent.id === artist.agent_id)
 })
 
+// Business Units
+export const mockBusinessUnits: BusinessUnit[] = [
+  {
+    slug: "mg-music",
+    name: "MG Music",
+    tagline: "Produccion musical de clase mundial",
+    description: "MG Music es la division de produccion y distribucion musical de MG Company Group. Nos encargamos de la creacion, grabacion, mezcla, masterizacion y distribucion de musica para nuestros artistas. Contamos con un estudio de grabacion equipado con la mejor tecnologia y un equipo de productores e ingenieros de sonido de primer nivel.",
+    services: ["Produccion musical", "Grabacion en estudio", "Mezcla y masterizacion", "Distribucion digital", "Composicion y arreglos", "Beats y produccion"],
+    image_url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&h=800&fit=crop",
+  },
+  {
+    slug: "mg-film",
+    name: "MG Film",
+    tagline: "Contenido visual que cuenta historias",
+    description: "MG Film es la productora audiovisual de MG Company Group. Creamos videoclips, documentales, contenido para redes sociales y piezas cinematograficas que elevan la imagen de nuestros artistas y marcas aliadas. Cada proyecto es tratado con el mismo nivel de detalle y calidad cinematografica.",
+    services: ["Videoclips musicales", "Documentales", "Contenido para redes", "Direccion creativa", "Post-produccion", "Motion graphics"],
+    image_url: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&h=800&fit=crop",
+  },
+  {
+    slug: "mg-up",
+    name: "MG Up",
+    tagline: "Desarrollo y gestion de talento",
+    description: "MG Up es la division de desarrollo artistico y management. Nos encargamos de descubrir, formar y posicionar nuevos talentos en la industria musical. Ofrecemos un programa integral que cubre desde la formacion artistica hasta la estrategia de marca personal y posicionamiento en plataformas digitales.",
+    services: ["Management artistico", "Desarrollo de marca personal", "Estrategia digital", "Booking y contrataciones", "Relaciones publicas", "Coaching artistico"],
+    image_url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=1200&h=800&fit=crop",
+  },
+  {
+    slug: "mg-live",
+    name: "MG Live",
+    tagline: "Experiencias en vivo inolvidables",
+    description: "MG Live es la division de eventos y producciones en vivo de MG Company Group. Organizamos conciertos, festivales, showcases y eventos corporativos con los mas altos estandares de produccion. Cada evento es una experiencia unica diseñada para conectar artistas con su publico.",
+    services: ["Produccion de eventos", "Conciertos y festivales", "Showcases", "Eventos corporativos", "Giras y tours", "Produccion tecnica"],
+    image_url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&h=800&fit=crop",
+  },
+]
+
+// MG Flow Shows
+export const mockMGFlowShows: MGFlowShow[] = [
+  {
+    slug: "dia-de-clase",
+    title: "Dia de Clase",
+    description: "Un espacio educativo donde artistas y profesionales de la industria comparten conocimientos y experiencias sobre el negocio de la musica.",
+    thumbnail: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&h=400&fit=crop",
+    category: "Educativo",
+    episodes: [
+      { title: "Como empezar en la industria musical", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "45:00" },
+      { title: "Derechos de autor y regalias", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "38:00" },
+    ],
+  },
+  {
+    slug: "the-hustle-report",
+    title: "The Hustle Report",
+    description: "Reportajes y entrevistas a fondo sobre la escena urbana, los negocios detras de la musica y las historias de exito.",
+    thumbnail: "https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=600&h=400&fit=crop",
+    category: "Entrevistas",
+    episodes: [
+      { title: "El negocio del streaming", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "52:00" },
+      { title: "Independiente vs Sello discografico", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "41:00" },
+    ],
+  },
+  {
+    slug: "studio-sessions",
+    title: "Studio Sessions",
+    description: "Sesiones en vivo desde el estudio de MG Company Group. Artistas interpretando sus temas en un formato intimo y acustico.",
+    thumbnail: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&h=400&fit=crop",
+    category: "Musica",
+    episodes: [
+      { title: "Bad Fellaz - Sesion Acustica", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "28:00" },
+      { title: "Miguelacho TF - En el estudio", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "32:00" },
+    ],
+  },
+  {
+    slug: "behind-the-beat",
+    title: "Behind the Beat",
+    description: "Un vistazo al proceso creativo de los productores. Desde la idea inicial hasta el track terminado.",
+    thumbnail: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=600&h=400&fit=crop",
+    category: "Produccion",
+    episodes: [
+      { title: "Como hacer un beat de trap", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "35:00" },
+    ],
+  },
+  {
+    slug: "mg-freestyle",
+    title: "MG Freestyle",
+    description: "Los artistas del roster se enfrentan al microfono en sesiones de freestyle puro. Sin filtros, sin edicion.",
+    thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=400&fit=crop",
+    category: "Musica",
+    episodes: [
+      { title: "Freestyle Session #1", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "15:00" },
+      { title: "Freestyle Session #2", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "18:00" },
+      { title: "Freestyle Session #3", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "12:00" },
+    ],
+  },
+  {
+    slug: "la-ruta",
+    title: "La Ruta",
+    description: "Docuserie que sigue a los artistas de MG Company Group en sus giras, shows y vida cotidiana.",
+    thumbnail: "https://images.unsplash.com/photo-1501612780327-45045538702b?w=600&h=400&fit=crop",
+    category: "Documental",
+    episodes: [
+      { title: "Detras de camaras - Tour 2024", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "48:00" },
+    ],
+  },
+  {
+    slug: "el-podcast-mg",
+    title: "El Podcast MG",
+    description: "Conversaciones sin guion con artistas, productores y figuras de la industria. El lado humano de la musica.",
+    thumbnail: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&h=400&fit=crop",
+    category: "Podcast",
+    episodes: [
+      { title: "Episodio 1 - Los inicios", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "62:00" },
+      { title: "Episodio 2 - El futuro del urbano", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "55:00" },
+    ],
+  },
+  {
+    slug: "clash-de-beats",
+    title: "Clash de Beats",
+    description: "Productores compiten creando beats en tiempo real. Creatividad, presion y talento puro.",
+    thumbnail: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=600&h=400&fit=crop",
+    category: "Competencia",
+    episodes: [
+      { title: "Ronda 1 - Trap vs Reggaeton", youtube_embed_url: "https://www.youtube.com/embed/dQw4w9WgXcQ", duration: "25:00" },
+    ],
+  },
+]
+
+// Gallery Items
+export const mockGalleryItems: GalleryItem[] = [
+  { id: "g1", type: "photo", url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop", category: "estudio", caption: "Sesion de grabacion" },
+  { id: "g2", type: "photo", url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop", category: "en-vivo", caption: "Show en vivo" },
+  { id: "g3", type: "photo", url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&h=600&fit=crop", category: "eventos", caption: "Festival MG Live" },
+  { id: "g4", type: "photo", url: "https://images.unsplash.com/photo-1501612780327-45045538702b?w=800&h=600&fit=crop", category: "bts", caption: "Detras de camaras" },
+  { id: "g5", type: "photo", url: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=800&h=600&fit=crop", category: "en-vivo", caption: "Concierto" },
+  { id: "g6", type: "photo", url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=600&fit=crop", category: "eventos", caption: "Evento especial" },
+  { id: "g7", type: "photo", url: "https://images.unsplash.com/photo-1571266028243-d220fec7fe85?w=800&h=600&fit=crop", category: "estudio", caption: "En el estudio" },
+  { id: "g8", type: "photo", url: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&h=600&fit=crop", category: "en-vivo", caption: "Performance" },
+  { id: "g9", type: "video", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&h=600&fit=crop", category: "bts", caption: "Making of videoclip" },
+  { id: "g10", type: "photo", url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=600&fit=crop", category: "estudio", caption: "Produccion musical" },
+  { id: "g11", type: "photo", url: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=600&fit=crop", category: "eventos", caption: "Lanzamiento" },
+  { id: "g12", type: "photo", url: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&h=400&fit=crop", category: "bts", caption: "Sesion de fotos" },
+]
+
+// Team Members
+export const mockTeamMembers: TeamMember[] = [
+  {
+    name: "Miguel Garcia",
+    role: "CEO & Fundador",
+    photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    bio: "Visionario y emprendedor detras de MG Company Group. Con mas de 10 anos de experiencia en la industria musical.",
+  },
+  {
+    name: "Laura Martinez",
+    role: "Directora Creativa",
+    photo_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
+    bio: "Encargada de la direccion artistica y visual de todos los proyectos de MG Company Group.",
+  },
+  {
+    name: "Carlos Hernandez",
+    role: "Director de MG Music",
+    photo_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
+    bio: "Productor musical e ingeniero de sonido con amplia experiencia en la industria.",
+  },
+  {
+    name: "Andrea Lopez",
+    role: "Directora de MG Film",
+    photo_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop",
+    bio: "Directora audiovisual especializada en videoclips y contenido musical.",
+  },
+]
+
 // Mock Company Information
 export const mockContactInfo: ContactInfo = {
-  company_name: "MG-Company",
+  company_name: "MG Company Group",
   address: {
     line1: "Carrera 43A #1-50",
     line2: "Oficina 201",
-    city: "Medellín",
+    city: "Medellin",
     postal_code: "050021",
     country: "Colombia",
   },
   email: {
-    general: "info@mg-company.com",
-    bookings: "bookings@mg-company.com",
-    press: "press@mg-company.com",
+    general: "info@mgcompanygroup.com",
+    bookings: "bookings@mgcompanygroup.com",
+    press: "prensa@mgcompanygroup.com",
   },
+  phone: "+57 300 123 4567",
   about: {
-    short: "MG-Company is a leading talent agency representing the finest artists in Latin America, specializing in electronic, urban, and alternative music.",
-    long: "Founded in 2018, MG-Company has established itself as one of Colombia's premier talent agencies, representing a diverse roster of artists across multiple genres. Our mission is to support and elevate Colombian and Latin American artists on the global stage, providing world-class booking services, artist development, and strategic career guidance. With offices in Medellín and partnerships across Latin America, Europe, and North America, we connect our artists with the best opportunities worldwide. Our team of experienced agents brings decades of industry expertise and a passion for discovering and nurturing exceptional talent.",
+    short: "MG Company Group es una productora artistica integral que impulsa el talento latino a traves de musica, cine, eventos en vivo y desarrollo de artistas.",
+    long: "Fundada con la vision de transformar la industria del entretenimiento latino, MG Company Group se ha consolidado como una productora artistica de referencia. Nuestras cuatro unidades de negocio — MG Music, MG Film, MG Up y MG Live — trabajan en sinergia para ofrecer un ecosistema completo que cubre todas las necesidades de un artista moderno. Desde la produccion musical hasta la creacion de contenido audiovisual, desde el desarrollo de talento hasta la organizacion de eventos memorables, en MG Company Group creemos en el poder de la creatividad y el trabajo duro para llevar el talento latino al mundo.",
+  },
+  social: {
+    instagram: "https://instagram.com/mgcompanygroup",
+    youtube: "https://youtube.com/@mgcompanygroup",
+    spotify: "https://open.spotify.com/mgcompanygroup",
+    tiktok: "https://tiktok.com/@mgcompanygroup",
   },
 }
 
-// Helper functions for data access
+// Helper functions
 export function getArtistBySlug(slug: string): Artist | undefined {
   return mockArtists.find(artist => artist.slug === slug)
 }
@@ -344,4 +364,33 @@ export function getAllAgents(): Agent[] {
 
 export function getAgentById(id: string): Agent | undefined {
   return mockAgents.find(agent => agent.id === id)
+}
+
+export function getBusinessUnitBySlug(slug: string): BusinessUnit | undefined {
+  return mockBusinessUnits.find(unit => unit.slug === slug)
+}
+
+export function getAllBusinessUnits(): BusinessUnit[] {
+  return mockBusinessUnits
+}
+
+export function getShowBySlug(slug: string): MGFlowShow | undefined {
+  return mockMGFlowShows.find(show => show.slug === slug)
+}
+
+export function getAllShows(): MGFlowShow[] {
+  return mockMGFlowShows
+}
+
+export function getAllGalleryItems(): GalleryItem[] {
+  return mockGalleryItems
+}
+
+export function getGalleryByCategory(category: string): GalleryItem[] {
+  if (category === 'todos') return mockGalleryItems
+  return mockGalleryItems.filter(item => item.category === category)
+}
+
+export function getAllTeamMembers(): TeamMember[] {
+  return mockTeamMembers
 }

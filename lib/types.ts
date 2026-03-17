@@ -1,4 +1,4 @@
-// Type definitions for MG-Company website
+// Type definitions for MG Company Group website
 
 export interface Agent {
   id: string
@@ -9,6 +9,19 @@ export interface Agent {
 }
 
 export type TileShape = 'square' | 'landscape' | 'portrait'
+
+export interface Album {
+  title: string
+  year: number
+  cover_url?: string
+  spotify_url?: string
+}
+
+export interface Video {
+  title: string
+  youtube_embed_url: string
+  thumbnail?: string
+}
 
 export interface Artist {
   id: string
@@ -33,11 +46,16 @@ export interface Artist {
     facebook?: string
   }
   media: {
-    audio?: string[] // Embed URLs
-    video?: string[] // Embed URLs
+    audio?: string[]
+    video?: string[]
   }
   featured: boolean
-  shape?: TileShape // For masonry grid layout (square, landscape, portrait)
+  shape?: TileShape
+  discography?: Album[]
+  videos?: Video[]
+  spotify_embed?: string
+  spotify_album_embed?: string
+  stream_embed?: string
 }
 
 export interface ContactInfo {
@@ -54,8 +72,57 @@ export interface ContactInfo {
     bookings?: string
     press?: string
   }
+  phone?: string
   about: {
     short: string
     long: string
   }
+  social: {
+    instagram?: string
+    youtube?: string
+    spotify?: string
+    tiktok?: string
+  }
+}
+
+export interface BusinessUnit {
+  slug: string
+  name: string
+  tagline: string
+  description: string
+  services: string[]
+  image_url: string
+}
+
+export interface Episode {
+  title: string
+  youtube_embed_url: string
+  duration?: string
+  published_date?: string
+  thumbnail?: string
+}
+
+export interface MGFlowShow {
+  slug: string
+  title: string
+  description: string
+  thumbnail: string
+  category: string
+  episodes: Episode[]
+}
+
+export interface GalleryItem {
+  id: string
+  type: 'photo' | 'video'
+  url: string
+  thumbnail?: string
+  category: 'estudio' | 'en-vivo' | 'eventos' | 'bts'
+  caption?: string
+}
+
+export interface TeamMember {
+  name: string
+  role: string
+  photo_url: string
+  bio?: string
 }

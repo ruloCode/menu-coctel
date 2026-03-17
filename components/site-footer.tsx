@@ -1,61 +1,96 @@
 "use client"
 
 import Link from "next/link"
-import { Instagram, Mail } from "lucide-react"
+import Image from "next/image"
+import { Instagram, Mail, Youtube, Music2 } from "lucide-react"
 
 export default function SiteFooter() {
   return (
     <footer className="border-t border-white/10 py-16 md:py-20 mt-16 md:mt-20 lg:mt-24">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          {/* Brand */}
+          <div>
+            <Link href="/" className="inline-block hover:opacity-80 transition-opacity duration-200">
+              <Image
+                src="/logo-mg.png"
+                alt="MG Company Group"
+                width={64}
+                height={64}
+                className="h-14 w-14"
+              />
+            </Link>
+            <p className="mt-4 text-sm text-zinc-400">
+              Productora artistica integral. Musica, cine, eventos en vivo y desarrollo de talento.
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm uppercase font-bold mb-2 text-mg-red font-heading text-lg">Navegacion</h3>
+            <Link href="/nosotros" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">Nosotros</Link>
+            <Link href="/artistas" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">Artistas</Link>
+            <Link href="/proyectos" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">Proyectos</Link>
+            <Link href="/mg-flow" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">MG Flow</Link>
+            <Link href="/galeria" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">Galeria</Link>
+            <Link href="/contacto" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">Contacto</Link>
+          </div>
+
+          {/* Unidades */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm uppercase font-bold mb-2 text-mg-red font-heading text-lg">Unidades</h3>
+            <Link href="/proyectos/mg-music" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">MG Music</Link>
+            <Link href="/proyectos/mg-film" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">MG Film</Link>
+            <Link href="/proyectos/mg-up" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">MG Up</Link>
+            <Link href="/proyectos/mg-live" className="text-sm text-zinc-400 hover:text-white transition-colors duration-200">MG Live</Link>
+          </div>
+
           {/* Social Links */}
-          <div className="flex items-center justify-center md:justify-start gap-4">
-            <a
-              href="https://instagram.com/mgcompany"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-14 h-14 flex items-center justify-center border-2 border-white rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all duration-300"
-              aria-label="Instagram"
-            >
-              <Instagram size={22} />
-            </a>
-            <a
-              href="mailto:info@mg-company.com"
-              className="w-14 h-14 flex items-center justify-center border-2 border-white rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all duration-300"
-              aria-label="Email"
-            >
-              <Mail size={22} />
-            </a>
-          </div>
-
-          {/* Navigation Links */}
-          <div className="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-6 md:justify-center">
-            <Link href="/artists" className="text-sm uppercase font-bold hover:text-zinc-300 transition-colors duration-200">
-              Artists
-            </Link>
-            <Link href="/contact" className="text-sm uppercase font-bold hover:text-zinc-300 transition-colors duration-200">
-              Contact
-            </Link>
-            <Link href="/about" className="text-sm uppercase font-bold hover:text-zinc-300 transition-colors duration-200">
-              About
-            </Link>
-          </div>
-
-          {/* Mailing List CTA */}
-          <div className="flex items-center justify-center md:col-span-2 lg:col-span-1 lg:justify-end">
-            <Link
-              href="/contact"
-              className="px-8 py-4 border-2 border-white rounded-full text-sm uppercase font-bold hover:bg-white hover:text-black hover:scale-105 transition-all duration-300 inline-block"
-            >
-              Join Mailing List
-            </Link>
+          <div>
+            <h3 className="text-sm uppercase font-bold mb-4 text-mg-red font-heading text-lg">Siguenos</h3>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://instagram.com/mgcompanygroup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 flex items-center justify-center border-2 border-white/20 rounded-full hover:bg-mg-red hover:border-mg-red hover:scale-110 transition-all duration-300"
+                aria-label="Instagram"
+              >
+                <Instagram size={20} />
+              </a>
+              <a
+                href="https://youtube.com/@mgcompanygroup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 flex items-center justify-center border-2 border-white/20 rounded-full hover:bg-mg-red hover:border-mg-red hover:scale-110 transition-all duration-300"
+                aria-label="YouTube"
+              >
+                <Youtube size={20} />
+              </a>
+              <a
+                href="https://open.spotify.com/mgcompanygroup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 flex items-center justify-center border-2 border-white/20 rounded-full hover:bg-mg-red hover:border-mg-red hover:scale-110 transition-all duration-300"
+                aria-label="Spotify"
+              >
+                <Music2 size={20} />
+              </a>
+              <a
+                href="mailto:info@mgcompanygroup.com"
+                className="w-12 h-12 flex items-center justify-center border-2 border-white/20 rounded-full hover:bg-mg-red hover:border-mg-red hover:scale-110 transition-all duration-300"
+                aria-label="Email"
+              >
+                <Mail size={20} />
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="mt-12 md:mt-16 pt-8 md:pt-12 border-t border-white/10 text-center">
           <p className="text-sm text-zinc-500">
-            © {new Date().getFullYear()} MG-Company. All rights reserved.
+            &copy; {new Date().getFullYear()} MG Company Group. Todos los derechos reservados.
           </p>
         </div>
       </div>

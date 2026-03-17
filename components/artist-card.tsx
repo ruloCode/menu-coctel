@@ -16,7 +16,7 @@ export default function ArtistCard({ artist, priority = false, shape = "square" 
 
   return (
     <Link
-      href={`/artists/${artist.slug}`}
+      href={`/artistas/${artist.slug}`}
       className="artist-card group block relative overflow-hidden h-full rounded-lg"
     >
       <div className="relative overflow-hidden bg-zinc-900 h-full rounded-lg">
@@ -44,7 +44,7 @@ export default function ArtistCard({ artist, priority = false, shape = "square" 
           )}
           {/* Hover indicator */}
           <div className="mt-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
-            <span className="text-xs uppercase font-bold text-white tracking-wider">View Profile</span>
+            <span className="text-xs uppercase font-bold text-white tracking-wider">Ver Perfil</span>
             <svg
               className="w-4 h-4 text-white transform group-hover:translate-x-1 transition-transform duration-300"
               fill="none"

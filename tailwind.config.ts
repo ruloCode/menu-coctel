@@ -19,6 +19,10 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        heading: ['var(--font-bebas)', 'sans-serif'],
+        body: ['var(--font-inter)', 'Helvetica', 'Arial', 'sans-serif'],
+      },
       fontWeight: {
         'black': '900',
         'extrabold': '800',
@@ -61,6 +65,14 @@ const config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        mg: {
+          red: '#E8200C',
+          'red-80': 'rgba(232,32,12,0.8)',
+          'red-60': 'rgba(232,32,12,0.6)',
+          'red-40': 'rgba(232,32,12,0.4)',
+          'red-20': 'rgba(232,32,12,0.2)',
+          black: '#111111',
         },
       },
       borderRadius: {
