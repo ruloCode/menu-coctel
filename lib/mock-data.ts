@@ -151,7 +151,7 @@ export const mockBusinessUnits: BusinessUnit[] = [
     tagline: "Produccion musical de clase mundial",
     description: "MG Music es la division de produccion y distribucion musical de MG Company Group. Nos encargamos de la creacion, grabacion, mezcla, masterizacion y distribucion de musica para nuestros artistas. Contamos con un estudio de grabacion equipado con la mejor tecnologia y un equipo de productores e ingenieros de sonido de primer nivel.",
     services: ["Produccion musical", "Grabacion en estudio", "Mezcla y masterizacion", "Distribucion digital", "Composicion y arreglos", "Beats y produccion"],
-    image_url: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&h=800&fit=crop",
+    image_url: "/generated/mg-music.png",
   },
   {
     slug: "mg-film",
@@ -159,7 +159,7 @@ export const mockBusinessUnits: BusinessUnit[] = [
     tagline: "Contenido visual que cuenta historias",
     description: "MG Film es la productora audiovisual de MG Company Group. Creamos videoclips, documentales, contenido para redes sociales y piezas cinematograficas que elevan la imagen de nuestros artistas y marcas aliadas. Cada proyecto es tratado con el mismo nivel de detalle y calidad cinematografica.",
     services: ["Videoclips musicales", "Documentales", "Contenido para redes", "Direccion creativa", "Post-produccion", "Motion graphics"],
-    image_url: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&h=800&fit=crop",
+    image_url: "/generated/mg-film.png",
   },
   {
     slug: "mg-up",
@@ -167,7 +167,7 @@ export const mockBusinessUnits: BusinessUnit[] = [
     tagline: "Desarrollo y gestion de talento",
     description: "MG Up es la division de desarrollo artistico y management. Nos encargamos de descubrir, formar y posicionar nuevos talentos en la industria musical. Ofrecemos un programa integral que cubre desde la formacion artistica hasta la estrategia de marca personal y posicionamiento en plataformas digitales.",
     services: ["Management artistico", "Desarrollo de marca personal", "Estrategia digital", "Booking y contrataciones", "Relaciones publicas", "Coaching artistico"],
-    image_url: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=1200&h=800&fit=crop",
+    image_url: "/generated/mg-up.png",
   },
   {
     slug: "mg-live",
@@ -175,7 +175,7 @@ export const mockBusinessUnits: BusinessUnit[] = [
     tagline: "Experiencias en vivo inolvidables",
     description: "MG Live es la division de eventos y producciones en vivo de MG Company Group. Organizamos conciertos, festivales, showcases y eventos corporativos con los mas altos estandares de produccion. Cada evento es una experiencia unica diseñada para conectar artistas con su publico.",
     services: ["Produccion de eventos", "Conciertos y festivales", "Showcases", "Eventos corporativos", "Giras y tours", "Produccion tecnica"],
-    image_url: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1200&h=800&fit=crop",
+    image_url: "/generated/mg-live.png",
   },
 ]
 

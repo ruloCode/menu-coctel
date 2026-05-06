@@ -41,6 +41,11 @@ export default function SiteHeader() {
             : "bg-mg-black/70 backdrop-blur-sm border-b border-white/10"
         }`}
       >
+        <div className="hidden md:flex items-center justify-between gap-6 px-6 lg:px-8 py-1.5 border-b border-white/10 font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+          <span>MG / Identidad Visual</span>
+          <span className="text-mg-red">Artistic Growth Company</span>
+          <span>V. 01.2026</span>
+        </div>
         <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5 flex items-center justify-between">
           {/* Logo */}
           <Link

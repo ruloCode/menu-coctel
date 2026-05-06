@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import useEmblaCarousel from "embla-carousel-react"
+import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -48,9 +49,14 @@ export default function FeaturedArtistsCarousel({
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex gap-4">
           {artists.map((artist) => (
-            <div
+            <motion.div
               key={artist.id}
               className="flex-none w-[280px] md:w-[320px] group"
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 0 30px rgba(232, 32, 12, 0.3)",
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <Link href={`/artistas/${artist.slug}`} className="block">
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
@@ -71,7 +77,7 @@ export default function FeaturedArtistsCarousel({
                   </div>
                 </div>
               </Link>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

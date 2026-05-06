@@ -3,6 +3,12 @@ import FeaturedArtistsCarousel from "@/components/featured-artists-carousel"
 import BusinessUnitsGrid from "@/components/business-units-grid"
 import SectionHeading from "@/components/section-heading"
 import ShowCard from "@/components/show-card"
+import ScrollReveal from "@/components/scroll-reveal"
+import ScrollProgress from "@/components/scroll-progress"
+import CTASection from "@/components/cta-section"
+import ManifestoSpread from "@/components/manifesto-spread"
+import BrandMarquee from "@/components/brand-marquee"
+import DiagonalArrow from "@/components/diagonal-arrow"
 import { getAllArtists, getAllBusinessUnits, getAllShows } from "@/lib/mock-data"
 import Link from "next/link"
 
@@ -10,93 +16,122 @@ export default function Home() {
   const featuredArtists = getAllArtists()
   const businessUnits = getAllBusinessUnits()
   const shows = getAllShows()
-  const latestShow = shows[0]
+  const displayShows = shows.slice(0, 4)
 
   return (
     <>
-      {/* Hero Section */}
-      <VideoHero
-        posterSrc="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1920&h=1080&fit=crop"
-      />
+      <ScrollProgress />
 
-      {/* Featured Artists */}
-      <section className="container mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-24">
-        <SectionHeading
-          title="Artistas"
-          subtitle="Conoce a los artistas que forman parte de nuestro roster"
-          className="mb-10 md:mb-14"
-        />
-        <FeaturedArtistsCarousel artists={featuredArtists} />
-        <div className="mt-10 text-center">
-          <Link
-            href="/artistas"
-            className="inline-block px-10 py-4 border-2 border-white rounded-full text-sm uppercase font-bold hover:bg-white hover:text-black hover:scale-105 transition-all duration-300"
-          >
-            Ver Todos los Artistas
-          </Link>
+      <VideoHero posterSrc="/generated/hero-bg.png" />
+
+      <ManifestoSpread />
+
+      <BrandMarquee />
+
+      <section className="container mx-auto px-4 md:px-6 lg:px-10 py-16 md:py-24">
+        <ScrollReveal direction="up">
+          <SectionHeading
+            index="02"
+            kicker="Roster"
+            title="Artistas"
+            subtitle="Voces que están definiendo el sonido del nuevo Caribe y la diáspora latina."
+            className="mb-10 md:mb-14"
+          />
+        </ScrollReveal>
+        <ScrollReveal direction="up" delay={0.2}>
+          <FeaturedArtistsCarousel artists={featuredArtists} />
+        </ScrollReveal>
+        <ScrollReveal direction="up" delay={0.3}>
+          <div className="mt-10 md:mt-14 flex justify-end">
+            <Link
+              href="/artistas"
+              className="group inline-flex items-center gap-4 border-2 border-white/80 px-6 md:px-8 py-3.5 md:py-4 hover:bg-white hover:text-mg-black hover:border-white transition-colors duration-300"
+            >
+              <span className="font-mono uppercase text-xs md:text-sm tracking-[0.3em] font-medium">
+                Ver todos los artistas
+              </span>
+              <DiagonalArrow size={22} strokeWidth={1.75} />
+            </Link>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      <section className="bg-mg-black border-t border-white/10">
+        <div className="container mx-auto px-4 md:px-6 lg:px-10 pt-16 md:pt-24 pb-10 md:pb-12">
+          <ScrollReveal direction="up">
+            <SectionHeading
+              index="03"
+              kicker="Capítulos"
+              title="Nuestras Unidades"
+              subtitle="Cuatro divisiones operando como un solo organismo. Cada una con su frecuencia, todas afinadas a la misma señal."
+              className="mb-10 md:mb-14"
+            />
+          </ScrollReveal>
+        </div>
+        <BusinessUnitsGrid businessUnits={businessUnits} />
+        <div className="container mx-auto px-4 md:px-6 lg:px-10 pt-6 md:pt-8 pb-16 md:pb-20">
+          <div className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-white/40 flex items-center gap-3">
+            <span>Paleta secundaria</span>
+            <span className="h-px flex-1 bg-white/15" />
+            <span className="text-mg-red">100 / 80 / 60 / 40</span>
+          </div>
         </div>
       </section>
 
-      {/* Business Units */}
-      <section className="container mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-24">
-        <SectionHeading
-          title="Nuestras Unidades"
-          subtitle="Cuatro divisiones trabajando en sinergia para impulsar el talento latino"
-          className="mb-10 md:mb-14"
-        />
-        <BusinessUnitsGrid businessUnits={businessUnits} />
-      </section>
+      <BrandMarquee variant="outline" />
 
-      {/* MG Flow Teaser */}
-      {latestShow && (
-        <section className="bg-zinc-900/50 border-y border-white/10">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-24">
-            <SectionHeading
-              title="MG Flow"
-              subtitle="Contenido original de MG Company Group"
-              className="mb-10 md:mb-14"
-            />
-            <div className="flex justify-center">
-              <ShowCard show={latestShow} />
-            </div>
-            <div className="mt-10 text-center">
-              <Link
-                href="/mg-flow"
-                className="inline-block px-10 py-4 border-2 border-white rounded-full text-sm uppercase font-bold hover:bg-white hover:text-black hover:scale-105 transition-all duration-300"
-              >
-                Ver Todos los Shows
-              </Link>
-            </div>
+      {displayShows.length > 0 && (
+        <section
+          className="relative border-y border-white/10 overflow-hidden"
+          style={{
+            backgroundImage: "url(/generated/mg-flow-bg.png)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-mg-black/85" />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 50% 50% at 80% 20%, rgba(232,32,12,0.25) 0%, transparent 60%)",
+            }}
+          />
+          <div className="relative container mx-auto px-4 md:px-6 lg:px-10 py-16 md:py-24">
+            <ScrollReveal direction="up">
+              <SectionHeading
+                index="04"
+                kicker="Contenido"
+                title="MG Flow"
+                subtitle="Series, sesiones y documentales originales. Contenido audiovisual hecho para escucharse."
+                className="mb-10 md:mb-14"
+              />
+            </ScrollReveal>
+            <ScrollReveal direction="up" delay={0.2}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {displayShows.map((show) => (
+                  <ShowCard key={show.slug} show={show} />
+                ))}
+              </div>
+            </ScrollReveal>
+            <ScrollReveal direction="up" delay={0.3}>
+              <div className="mt-10 md:mt-14 flex justify-end">
+                <Link
+                  href="/mg-flow"
+                  className="group inline-flex items-center gap-4 border-2 border-mg-red px-6 md:px-8 py-3.5 md:py-4 hover:bg-mg-red transition-colors duration-300"
+                >
+                  <span className="font-mono uppercase text-xs md:text-sm tracking-[0.3em] font-medium text-white">
+                    Ver todos los shows
+                  </span>
+                  <DiagonalArrow size={22} strokeWidth={1.75} className="text-white" />
+                </Link>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
       )}
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 md:px-6 lg:px-8 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-heading text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight mb-6 md:mb-8">
-            Trabaja con Nosotros
-          </h2>
-          <p className="text-lg md:text-xl text-zinc-400 mb-8 md:mb-10 leading-relaxed max-w-2xl mx-auto">
-            MG Company Group es una productora artistica integral que impulsa el talento latino.
-            Conectamos artistas excepcionales con oportunidades de clase mundial.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
-            <Link
-              href="/contacto"
-              className="px-10 py-5 bg-mg-red text-white rounded-full text-sm uppercase font-bold hover:bg-red-700 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              Contactanos
-            </Link>
-            <Link
-              href="/nosotros"
-              className="px-10 py-5 border-2 border-white rounded-full text-sm uppercase font-bold hover:bg-white hover:text-black hover:scale-105 transition-all duration-300"
-            >
-              Conoce Mas
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CTASection />
     </>
   )
 }

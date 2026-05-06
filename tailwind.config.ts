@@ -22,6 +22,7 @@ const config = {
       fontFamily: {
         heading: ['var(--font-bebas)', 'sans-serif'],
         body: ['var(--font-inter)', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       fontWeight: {
         'black': '900',
