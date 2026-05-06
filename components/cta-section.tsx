@@ -8,9 +8,9 @@ import DiagonalArrow from "./diagonal-arrow"
 
 const CONTACT_META = [
   { label: "Email:", value: "hola@mgcompanygroup.com" },
-  { label: "Whatsapp:", value: "+57 300 000 0000" },
+  { label: "Whatsapp:", value: "+57 XXX XXX XXXX" },
   { label: "Instagram:", value: "@mgcompanygroup" },
-  { label: "Location:", value: "Bogotá / Cartagena" },
+  { label: "Base:", value: "Bogotá · Cartagena · COL" },
 ]
 
 const wordVariants = {
@@ -52,11 +52,11 @@ export default function CTASection() {
         >
           <span className="text-mg-red text-xl leading-none">&#10022;</span>
           <span className="font-mono text-mg-red text-xs md:text-sm uppercase tracking-[0.3em] font-medium">
-            Cierre / Contacto
+            [ 08 / Trabajemos ]
           </span>
           <span className="h-px flex-1 bg-mg-red/40" />
           <span className="font-mono text-white/40 text-[11px] md:text-xs uppercase tracking-[0.25em]">
-            05 / 05
+            Cierre
           </span>
         </motion.div>
 
@@ -97,7 +97,7 @@ export default function CTASection() {
               viewport={{ once: true }}
               className="block text-[clamp(3rem,12vw,11rem)]"
             >
-              Trabajemos
+              ¿Tenés
             </motion.span>
             <motion.span
               custom={1}
@@ -107,7 +107,7 @@ export default function CTASection() {
               viewport={{ once: true }}
               className="block text-[clamp(3rem,12vw,11rem)]"
             >
-              Juntos
+              un proyecto?
             </motion.span>
           </h2>
         </div>
@@ -119,9 +119,9 @@ export default function CTASection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-8 md:mt-12 max-w-xl text-zinc-300 text-base md:text-lg leading-relaxed"
         >
-          MG Company Group impulsa el talento latino con marketing digital,
-          producción audiovisual, sonora y eventos. ¿Tienes un proyecto?
-          Hablemos.
+          Si querés producir música, lanzar un videoclip, montar un show o
+          construir tu marca como artista — empezamos con una reunión sin
+          compromiso. 30 minutos, te decimos qué podemos hacer y a qué precio.
         </motion.p>
 
         <div className="mt-10 md:mt-14 border-t border-white/15 pt-6 md:pt-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
@@ -145,7 +145,7 @@ export default function CTASection() {
               className="group inline-flex items-center gap-4 border-2 border-white px-6 md:px-8 py-4 md:py-5 hover:bg-mg-red hover:border-mg-red transition-colors duration-300"
             >
               <span className="font-mono uppercase text-xs md:text-sm tracking-[0.3em] font-medium text-white">
-                Iniciar proyecto
+                Cuéntanos tu proyecto
               </span>
               <DiagonalArrow
                 size={28}

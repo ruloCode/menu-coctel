@@ -12,13 +12,13 @@ interface VideoHeroProps {
   className?: string
 }
 
-const TOP_WORD = "MARCA"
-const BOTTOM_WORD = "MG COMPANY GROUP"
+const TOP_WORD = "TALENTO"
+const BOTTOM_WORD = "EN MOVIMIENTO"
 
 const META_ITEMS = [
-  { label: "Date:", value: "ENERO 29, 2026" },
-  { label: "Website:", value: "Artistic growth company" },
-  { label: "Sound:", value: "Mind of gods" },
+  { label: "Roster:", value: "5 artistas activos" },
+  { label: "Operación:", value: "Bogotá · Cartagena · COL" },
+  { label: "Foco:", value: "Artistic growth company" },
 ]
 
 const containerVariants = {
@@ -131,7 +131,7 @@ export default function VideoHero({ videoSrc, posterSrc, className }: VideoHeroP
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          Manual de
+          Productora artística · Bogotá / Cartagena
         </motion.div>
 
         <h1 className="font-heading uppercase text-white leading-[0.85] tracking-tight">
@@ -152,8 +152,9 @@ export default function VideoHero({ videoSrc, posterSrc, className }: VideoHeroP
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <p className="font-mono text-[11px] md:text-xs uppercase tracking-[0.3em] text-white/60 leading-relaxed">
-            Mind of gods company group — productora artística integral.
-            Marketing digital, producción audiovisual, sonido y eventos.
+            Producimos música, contenido y experiencias para los artistas que
+            están construyendo el próximo sonido latino. Un solo equipo, de
+            punta a punta.
           </p>
         </motion.div>
       </div>

@@ -46,7 +46,7 @@ export default function ManifestoSpread({ className }: ManifestoSpreadProps) {
             >
               <span className="text-mg-red text-xl leading-none">&#10022;</span>
               <span className="font-mono text-mg-red text-xs md:text-sm uppercase tracking-[0.3em] font-medium">
-                A big dream needs a great team
+                Donde el talento se produce
               </span>
             </motion.div>
 
@@ -59,19 +59,18 @@ export default function ManifestoSpread({ className }: ManifestoSpreadProps) {
             >
               <p className="text-white text-base md:text-lg leading-relaxed">
                 <span className="font-mono text-mg-red uppercase tracking-wider text-sm">
-                  MG (Mind of Gods)
+                  MG Company Group
                 </span>{" "}
-                es una compañía dedicada a la creación, producción y promoción
-                de experiencias artísticas únicas, combinando el poder del
-                marketing digital, la producción audiovisual y sonora, y la
-                gestión de eventos.
+                existe para una cosa: convertir talento en marca. Hacemos la
+                música, filmamos los videos, montamos los shows y diseñamos
+                la estrategia digital. Todo en casa, todo bajo el mismo
+                estándar.
               </p>
               <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-                Ofrecemos soluciones creativas e innovadoras que potencian el
-                talento y conectan con el público de manera auténtica. Una
-                compañía versátil, en constante evolución, diseñada para
-                atender artistas emergentes, marcas y profesionales de la
-                industria creativa.
+                Trabajamos con artistas emergentes que no quieren depender de
+                cinco proveedores distintos para sonar bien y verse mejor.
+                También con sellos, marcas y agencias que necesitan
+                producción real, no plantillas con beats.
               </p>
             </motion.div>
 
