@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Mail, Play } from "lucide-react"
 import { getArtistBySlug, getAllArtists } from "@/lib/mock-data"
 import PlatformLinks from "@/components/platform-links"
 import DiagonalArrow from "@/components/diagonal-arrow"
+import BookingDialog from "@/components/booking-dialog"
 
 interface ArtistPageProps {
   params: Promise<{
@@ -182,17 +183,14 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                 </span>
               </a>
             )}
-            {bookingEmail && (
-              <a
-                href={`mailto:${bookingEmail}?subject=Booking: ${artist.name}`}
-                className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5"
-              >
+            <BookingDialog artistName={artist.name}>
+              <button className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5">
                 <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
                   Booking
                 </span>
                 <DiagonalArrow size={18} strokeWidth={1.75} />
-              </a>
-            )}
+              </button>
+            </BookingDialog>
             <PlatformLinks links={artist.social_links} />
           </div>
         </div>
@@ -269,14 +267,11 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                 </div>
               </dl>
 
-              {bookingEmail && (
-                <a
-                  href={`mailto:${bookingEmail}?subject=Booking: ${artist.name}`}
-                  className="block bg-mg-red px-6 py-5 text-center font-mono text-xs font-medium uppercase tracking-[0.3em] text-white transition-colors duration-300 hover:bg-white hover:text-mg-black"
-                >
+              <BookingDialog artistName={artist.name}>
+                <button className="block w-full bg-mg-red px-6 py-5 text-center font-mono text-xs font-medium uppercase tracking-[0.3em] text-white transition-colors duration-300 hover:bg-white hover:text-mg-black">
                   Solicitar booking
-                </a>
-              )}
+                </button>
+              </BookingDialog>
             </div>
           </aside>
         </div>
@@ -508,11 +503,19 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-4 lg:col-span-5 lg:justify-end">
+                <BookingDialog artistName={artist.name}>
+                  <button className="inline-flex items-center gap-3 bg-mg-red px-6 py-3.5 text-white transition-colors duration-300 hover:bg-white hover:text-mg-black md:px-8 md:py-4">
+                    <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
+                      Solicitar booking
+                    </span>
+                    <DiagonalArrow size={18} strokeWidth={1.75} />
+                  </button>
+                </BookingDialog>
                 {artist.press_kit_url ? (
                   <a
                     href={artist.press_kit_url}
                     download
-                    className="inline-flex items-center gap-3 bg-mg-red px-6 py-3.5 text-white transition-colors duration-300 hover:bg-white hover:text-mg-black md:px-8 md:py-4"
+                    className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5"
                   >
                     <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
                       Descargar kit de prensa
@@ -520,15 +523,14 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                     <DiagonalArrow size={18} strokeWidth={1.75} />
                   </a>
                 ) : (
-                  <a
-                    href={`mailto:${bookingEmail}?subject=Kit de prensa: ${artist.name}`}
-                    className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5"
-                  >
-                    <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
-                      Solicitar kit de prensa
-                    </span>
-                    <DiagonalArrow size={18} strokeWidth={1.75} />
-                  </a>
+                  <BookingDialog artistName={artist.name} intent="press-kit">
+                    <button className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5">
+                      <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
+                        Solicitar kit de prensa
+                      </span>
+                      <DiagonalArrow size={18} strokeWidth={1.75} />
+                    </button>
+                  </BookingDialog>
                 )}
               </div>
             </div>
