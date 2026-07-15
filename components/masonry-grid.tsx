@@ -46,7 +46,7 @@ export default function MasonryGrid({ artists }: MasonryGridProps) {
           variants={item}
           className={`tile-shape-${artist.shape || 'square'}`}
         >
-          <ArtistCard artist={artist} priority={index < 6} shape={artist.shape} />
+          <ArtistCard artist={artist} priority={index < 6} shape={artist.shape} index={index} />
         </motion.div>
       ))}
     </motion.div>

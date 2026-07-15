@@ -2,12 +2,12 @@
 
 import { useCallback } from "react"
 import useEmblaCarousel from "embla-carousel-react"
-import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import type { Artist } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import DiagonalArrow from "./diagonal-arrow"
 
 interface FeaturedArtistsCarouselProps {
   artists: Artist[]
@@ -32,52 +32,57 @@ export default function FeaturedArtistsCarousel({
       {/* Navigation arrows */}
       <button
         onClick={scrollPrev}
-        className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-mg-black/80 border border-zinc-700 flex items-center justify-center text-white hover:bg-mg-red transition-colors"
+        className="absolute -left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/20 bg-mg-black/90 text-white transition-colors duration-300 hover:border-mg-red hover:bg-mg-red"
         aria-label="Anterior"
       >
-        <ChevronLeft className="w-5 h-5" />
+        <ChevronLeft className="h-5 w-5" />
       </button>
       <button
         onClick={scrollNext}
-        className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-mg-black/80 border border-zinc-700 flex items-center justify-center text-white hover:bg-mg-red transition-colors"
+        className="absolute -right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-white/20 bg-mg-black/90 text-white transition-colors duration-300 hover:border-mg-red hover:bg-mg-red"
         aria-label="Siguiente"
       >
-        <ChevronRight className="w-5 h-5" />
+        <ChevronRight className="h-5 w-5" />
       </button>
 
       {/* Carousel */}
       <div ref={emblaRef} className="overflow-hidden">
-        <div className="flex gap-4">
-          {artists.map((artist) => (
-            <motion.div
-              key={artist.id}
-              className="flex-none w-[280px] md:w-[320px] group"
-              whileHover={{
-                scale: 1.03,
-                boxShadow: "0 0 30px rgba(232, 32, 12, 0.3)",
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
+        <div className="flex gap-5">
+          {artists.map((artist, index) => (
+            <div key={artist.id} className="group w-[280px] flex-none md:w-[340px]">
               <Link href={`/artistas/${artist.slug}`} className="block">
-                <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
+                <div className="relative aspect-[3/4] overflow-hidden border border-white/10 bg-zinc-950 transition-colors duration-500 group-hover:border-mg-red/70">
                   <Image
                     src={artist.photo_url}
                     alt={artist.name}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-cover grayscale transition-[filter,transform] duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.04]"
+                    sizes="(max-width: 768px) 280px, 340px"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-heading text-xl uppercase text-white">
+                  <div className="absolute inset-0 bg-gradient-to-t from-mg-black via-mg-black/20 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
+
+                  {/* Index chip */}
+                  <span className="absolute left-0 top-0 border-b border-r border-white/10 bg-mg-black/70 px-3 py-2 font-mono text-[10px] tracking-[0.3em] text-white/60 backdrop-blur-sm transition-colors duration-500 group-hover:text-mg-red">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <span className="mb-3 block h-px w-8 bg-mg-red transition-all duration-500 group-hover:w-16" />
+                    <h3 className="font-heading text-2xl uppercase leading-[0.9] text-white md:text-3xl">
                       {artist.name}
                     </h3>
-                    <span className="text-mg-red text-sm font-medium mt-1 inline-block group-hover:underline">
-                      Ver Perfil
-                    </span>
+                    <div className="mt-2 flex items-end justify-between gap-3">
+                      <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/50 transition-colors duration-300 group-hover:text-white/80">
+                        {artist.location ?? "Ver perfil"}
+                      </span>
+                      <span className="translate-y-1 text-mg-red opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                        <DiagonalArrow size={18} strokeWidth={1.75} />
+                      </span>
+                    </div>
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

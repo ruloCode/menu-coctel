@@ -1,153 +1,80 @@
 "use client"
 
 import { useState } from "react"
-import { Search } from "lucide-react"
-import type { Artist, Agent } from "@/lib/types"
+import { Search, X } from "lucide-react"
+import type { Artist } from "@/lib/types"
 import MasonryGrid from "./masonry-grid"
 
 interface ArtistFilterProps {
   artists: Artist[]
-  agents: Agent[]
 }
 
-export default function ArtistFilter({ artists, agents }: ArtistFilterProps) {
+export default function ArtistFilter({ artists }: ArtistFilterProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null)
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null)
 
-  // Generate alphabet for A-Z filter
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
-
-  // Filter artists based on search and filters
-  const filteredArtists = artists.filter((artist) => {
-    // Search filter
-    if (searchQuery && !artist.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-
-    // Agent filter
-    if (selectedAgent && artist.agent_id !== selectedAgent) {
-      return false
-    }
-
-    // Letter filter
-    if (selectedLetter && !artist.name.toUpperCase().startsWith(selectedLetter)) {
-      return false
-    }
-
-    return true
-  })
-
-  // Reset all filters
-  const resetFilters = () => {
-    setSearchQuery("")
-    setSelectedAgent(null)
-    setSelectedLetter(null)
-  }
-
-  // Get artist count for each letter
-  const getLetterCount = (letter: string) => {
-    return artists.filter((artist) => artist.name.toUpperCase().startsWith(letter)).length
-  }
+  const normalized = searchQuery.trim().toLowerCase()
+  const filteredArtists = normalized
+    ? artists.filter((artist) =>
+        [artist.name, artist.location, artist.label]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(normalized)
+      )
+    : artists
 
   return (
-    <div className="space-y-8">
-      {/* Filter Bar */}
-      <div className="bg-zinc-900/50 border border-white/10 rounded-lg p-6">
-        {/* Search */}
-        <div className="mb-6">
-          <label htmlFor="search" className="block text-sm font-bold uppercase mb-2">
-            Buscar Artistas
-          </label>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-            <input
-              id="search"
-              type="text"
-              placeholder="Nombre del artista..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-black border border-white/20 rounded-lg py-3 pl-12 pr-4 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-white/50"
-            />
-          </div>
-        </div>
-
-        {/* A-Z Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-bold uppercase mb-3">Filtrar por Letra</label>
-          <div className="flex flex-wrap gap-2">
-            {alphabet.map((letter) => {
-              const count = getLetterCount(letter)
-              const isActive = selectedLetter === letter
-              const hasArtists = count > 0
-
-              return (
-                <button
-                  key={letter}
-                  onClick={() => setSelectedLetter(isActive ? null : letter)}
-                  disabled={!hasArtists}
-                  className={`
-                    w-10 h-10 rounded font-bold text-sm transition-all
-                    ${isActive ? "bg-mg-red text-white" : "bg-black border border-white/20 text-white"}
-                    ${hasArtists ? "hover:bg-mg-red hover:text-white cursor-pointer" : "opacity-30 cursor-not-allowed"}
-                  `}
-                >
-                  {letter}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Agent Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-bold uppercase mb-3">Filtrar por Agente</label>
-          <div className="flex flex-wrap gap-2">
-            {agents.map((agent) => {
-              const isActive = selectedAgent === agent.id
-              return (
-                <button
-                  key={agent.id}
-                  onClick={() => setSelectedAgent(isActive ? null : agent.id)}
-                  className={`
-                    px-4 py-2 rounded-full text-sm font-bold transition-all
-                    ${isActive ? "bg-mg-red text-white" : "bg-black border border-white/20 text-white hover:bg-mg-red hover:text-white"}
-                  `}
-                >
-                  {agent.name}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Active Filters & Reset */}
-        {(searchQuery || selectedAgent || selectedLetter) && (
-          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-            <p className="text-sm text-zinc-400">
-              Mostrando {filteredArtists.length} de {artists.length} artistas
-            </p>
+    <div className="space-y-10 md:space-y-12">
+      {/* Toolbar */}
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-center md:justify-between">
+        <div className="relative w-full max-w-md">
+          <Search
+            className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-white/40"
+            size={18}
+          />
+          <input
+            id="search"
+            type="text"
+            placeholder="Buscar artista"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Buscar artistas"
+            className="w-full border-0 border-b border-white/20 bg-transparent py-3 pl-8 pr-10 font-mono text-sm uppercase tracking-[0.15em] text-white placeholder:text-white/30 transition-colors focus:border-mg-red focus:outline-none"
+          />
+          {searchQuery && (
             <button
-              onClick={resetFilters}
-              className="text-sm font-bold uppercase underline hover:text-zinc-400 transition-colors"
+              onClick={() => setSearchQuery("")}
+              aria-label="Limpiar búsqueda"
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-white/40 transition-colors hover:text-mg-red"
             >
-              Limpiar Filtros
+              <X size={16} />
             </button>
-          </div>
-        )}
+          )}
+        </div>
+
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-white/40">
+          <span className="text-mg-red">{String(filteredArtists.length).padStart(2, "0")}</span>
+          {" / "}
+          {String(artists.length).padStart(2, "0")} artistas
+        </p>
       </div>
 
       {/* Results */}
       {filteredArtists.length > 0 ? (
         <MasonryGrid artists={filteredArtists} />
       ) : (
-        <div className="text-center py-20">
-          <p className="text-2xl text-zinc-400">No se encontraron artistas</p>
+        <div className="border border-white/10 py-20 text-center md:py-28">
+          <p className="font-heading text-3xl uppercase text-white/70 md:text-4xl">
+            Sin resultados
+          </p>
+          <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.25em] text-white/40">
+            No encontramos artistas para &ldquo;{searchQuery}&rdquo;
+          </p>
           <button
-            onClick={resetFilters}
-            className="mt-4 text-sm font-bold uppercase underline hover:text-white transition-colors"
+            onClick={() => setSearchQuery("")}
+            className="mt-8 inline-flex items-center gap-3 border border-white/40 px-6 py-3 font-mono text-[11px] uppercase tracking-[0.3em] text-white transition-colors duration-300 hover:border-mg-red hover:bg-mg-red"
           >
-            Limpiar filtros para ver todos los artistas
+            Ver todo el roster
           </button>
         </div>
       )}

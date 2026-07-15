@@ -29,12 +29,18 @@ export interface Artist {
   name: string
   bio: string
   bio_full?: string
+  tagline?: string
+  genre?: string
+  meta_description?: string
+  booking_email?: string
+  press_kit_url?: string
   location?: string
   label?: string
   agent_id: string
   agent?: Agent
   photo_url: string
   hero_image_url?: string
+  gallery?: string[]
   social_links: {
     instagram?: string
     spotify?: string

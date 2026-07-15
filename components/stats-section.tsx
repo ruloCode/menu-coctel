@@ -51,7 +51,7 @@ export default function StatsSection({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="container mx-auto px-4 md:px-6 lg:px-10 py-16 md:py-20">
+      <div className="container mx-auto px-4 md:px-6 lg:px-10 py-16 md:py-24">
         <div className="flex items-center gap-3 mb-10 md:mb-14">
           <span className="font-mono text-mg-red text-[11px] md:text-xs uppercase tracking-[0.25em] font-medium whitespace-nowrap">
             [ 02 / Números ]

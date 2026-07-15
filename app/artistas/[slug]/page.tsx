@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { Music2, Mail, ArrowLeft, Disc3 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Mail, Play } from "lucide-react"
 import { getArtistBySlug, getAllArtists } from "@/lib/mock-data"
-import ScrollingText from "@/components/scrolling-text"
 import PlatformLinks from "@/components/platform-links"
+import DiagonalArrow from "@/components/diagonal-arrow"
 
 interface ArtistPageProps {
   params: Promise<{
@@ -31,8 +31,30 @@ export async function generateMetadata({ params }: ArtistPageProps) {
 
   return {
     title: `${artist.name} | MG Company Group`,
-    description: artist.bio,
+    description: artist.meta_description ?? artist.bio,
   }
+}
+
+function SectionKicker({ index, label }: { index: string; label: string }) {
+  return (
+    <div className="mb-8 flex items-center gap-3 md:mb-10">
+      <span className="whitespace-nowrap font-mono text-[11px] font-medium uppercase tracking-[0.25em] text-mg-red md:text-xs">
+        [ {index} / {label} ]
+      </span>
+      <span className="h-px flex-1 bg-mg-red/40" />
+    </div>
+  )
+}
+
+function FactRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="border-b border-white/10 px-6 py-4">
+      <dt className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+        {label}
+      </dt>
+      <dd className="mt-1.5 text-base text-white">{children}</dd>
+    </div>
+  )
 }
 
 export default async function ArtistaPage({ params }: ArtistPageProps) {
@@ -43,123 +65,231 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
     notFound()
   }
 
+  const artists = getAllArtists()
+  const currentIndex = artists.findIndex((a) => a.slug === artist.slug)
+  const prevArtist = artists[(currentIndex - 1 + artists.length) % artists.length]
+  const nextArtist = artists[(currentIndex + 1) % artists.length]
+
+  const bookingEmail = artist.booking_email ?? artist.agent?.email
+  const hasListenSection = Boolean(
+    artist.spotify_embed || artist.spotify_album_embed || artist.stream_embed
+  )
+  const hasMedia =
+    (artist.media.audio?.length ?? 0) > 0 || (artist.media.video?.length ?? 0) > 0
+
+  // Dynamic section numbering: skips sections the artist doesn't have
+  let sectionCount = 0
+  const nextSection = () => String(++sectionCount).padStart(2, "0")
+
   return (
-    <>
-      {/* Scrolling Artist Name Header */}
-      <section className="py-12 md:py-20 overflow-hidden border-b border-white/10">
-        <ScrollingText text={artist.name} />
-      </section>
+    <article>
+      {/* Cinematic Hero — pulled up under the translucent fixed header */}
+      <section className="relative -mt-16 flex min-h-[80svh] items-end overflow-hidden border-b border-white/10 md:-mt-24 md:min-h-[88svh] lg:-mt-28">
+        <Image
+          src={artist.hero_image_url || artist.photo_url}
+          alt={artist.name}
+          fill
+          priority
+          className="object-cover"
+          style={{ objectPosition: "center 25%" }}
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-mg-black via-mg-black/40 to-mg-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-mg-black/70 via-transparent to-transparent" />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 50% 40% at 15% 100%, rgba(232,32,12,0.22) 0%, transparent 65%)",
+          }}
+        />
 
-      {/* Main Content - Two Columns on Desktop */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left Column: Photo + Biography */}
-          <div className="space-y-10">
-            {/* Hero Image */}
-            <div className="relative aspect-square lg:aspect-[3/4] overflow-hidden rounded-lg bg-zinc-900">
-              <Image
-                src={artist.hero_image_url || artist.photo_url}
-                alt={artist.name}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
+        <div className="container relative mx-auto w-full px-4 pb-10 pt-52 md:px-6 md:pb-16 md:pt-72 lg:px-10">
+          <Link
+            href="/artistas"
+            className="group mb-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.3em] text-white/60 transition-colors hover:text-white md:mb-10"
+          >
+            <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
+            Roster
+          </Link>
 
-            {/* Biography */}
-            <div>
-              <h2 className="font-heading text-3xl uppercase tracking-tight mb-6">Biografia</h2>
-              <p className="text-xl leading-relaxed mb-6">
-                <strong>{artist.bio}</strong>
-              </p>
-              {artist.bio_full && (
-                <div className="text-lg text-zinc-400 leading-relaxed space-y-4">
-                  {artist.bio_full.split("\n\n").map((paragraph, index) => (
-                    <p key={index}>{paragraph}</p>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="mb-5 flex items-center gap-3 md:mb-6">
+            <span className="whitespace-nowrap font-mono text-[11px] font-medium uppercase tracking-[0.25em] text-mg-red md:text-xs">
+              [ Artista MG / {String(currentIndex + 1).padStart(2, "0")} ]
+            </span>
+            <span className="h-px w-16 bg-mg-red/60 md:w-24" />
           </div>
 
-          {/* Right Column: Info + Spotify */}
-          <div className="space-y-8">
-            {/* Info Grid */}
-            <div className="bg-zinc-900/50 border border-white/10 rounded-lg p-6 space-y-4">
-              <div>
-                <h3 className="text-sm uppercase font-bold text-zinc-400 mb-1">Artista</h3>
-                <p className="text-2xl font-black uppercase tracking-tight">{artist.name}</p>
-              </div>
+          <h1 className="max-w-5xl font-heading uppercase leading-[0.85] tracking-tight text-white text-[clamp(3.25rem,11vw,9.5rem)]">
+            {artist.name}
+          </h1>
 
-              {artist.agent && (
-                <div>
-                  <h3 className="text-sm uppercase font-bold text-zinc-400 mb-1">Agente</h3>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-bold">{artist.agent.name}</p>
-                    <a
-                      href={`mailto:${artist.agent.email}`}
-                      className="p-2 hover:bg-white/10 rounded transition-colors"
-                      aria-label={`Email ${artist.agent.name}`}
-                    >
-                      <Mail size={16} />
-                    </a>
-                  </div>
-                </div>
-              )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] uppercase tracking-[0.25em] text-white/70 md:mt-5 md:text-xs">
+            {artist.location && <span>{artist.location}</span>}
+            {artist.genre && (
+              <>
+                <span className="text-mg-red">●</span>
+                <span>{artist.genre}</span>
+              </>
+            )}
+            {artist.label && (
+              <>
+                <span className="text-mg-red">●</span>
+                <span>{artist.label}</span>
+              </>
+            )}
+            <span className="text-mg-red">●</span>
+            <span>MG Company Group</span>
+          </div>
 
-              {artist.location && (
-                <div>
-                  <h3 className="text-sm uppercase font-bold text-zinc-400 mb-1">Ubicacion</h3>
-                  <p className="text-lg">{artist.location}</p>
-                </div>
-              )}
+          {artist.tagline && (
+            <p className="mt-3 max-w-xl text-sm italic text-white/60 md:text-base">
+              &ldquo;{artist.tagline}&rdquo;
+            </p>
+          )}
 
-              {artist.label && (
-                <div>
-                  <h3 className="text-sm uppercase font-bold text-zinc-400 mb-1">Sello</h3>
-                  <p className="text-lg">{artist.label}</p>
-                </div>
-              )}
-
-              {/* Platform Links */}
-              <div className="pt-2">
-                <PlatformLinks links={artist.social_links} />
-              </div>
-            </div>
-
-            {/* Spotify Embed */}
-            {artist.spotify_embed && (
-              <div>
-                <h3 className="font-heading text-xl uppercase tracking-tight mb-4 flex items-center gap-2">
-                  <Music2 size={20} className="text-mg-red" />
+          <div className="mt-8 flex flex-wrap items-center gap-4 md:mt-10 md:gap-5">
+            {hasListenSection && (
+              <a
+                href="#escuchar"
+                className="inline-flex items-center gap-3 bg-mg-red px-6 py-3.5 text-white transition-colors duration-300 hover:bg-white hover:text-mg-black md:px-8 md:py-4"
+              >
+                <Play size={15} className="fill-current" />
+                <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
                   Escuchar
-                </h3>
-                <iframe
-                  src={artist.spotify_embed}
-                  width="100%"
-                  height="352"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  title={`${artist.name} en Spotify`}
-                  style={{ borderRadius: '12px' }}
-                />
-                {artist.spotify_album_embed && (
-                  <iframe
-                    src={artist.spotify_album_embed}
-                    width="100%"
-                    height="352"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    title={`${artist.name} - Último álbum`}
-                    className="mt-4"
-                    style={{ borderRadius: '12px' }}
-                  />
-                )}
+                </span>
+              </a>
+            )}
+            {bookingEmail && (
+              <a
+                href={`mailto:${bookingEmail}?subject=Booking: ${artist.name}`}
+                className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5"
+              >
+                <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
+                  Booking
+                </span>
+                <DiagonalArrow size={18} strokeWidth={1.75} />
+              </a>
+            )}
+            <PlatformLinks links={artist.social_links} />
+          </div>
+        </div>
+      </section>
+
+      {/* Perfil + Ficha */}
+      <section className="container mx-auto px-4 py-14 md:px-6 md:py-20 lg:px-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-7">
+            <SectionKicker index={nextSection()} label="Perfil" />
+            <p className="text-xl font-medium leading-relaxed text-white md:text-2xl">
+              {artist.bio}
+            </p>
+            {artist.bio_full && (
+              <div className="mt-8 space-y-5 text-base leading-relaxed text-zinc-400 md:text-lg">
+                {artist.bio_full.split("\n\n").map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
               </div>
             )}
+          </div>
 
-            {/* Stream Embed */}
+          <aside className="lg:col-span-4 lg:col-start-9">
+            <div className="border border-white/10 bg-zinc-950/60 lg:sticky lg:top-36">
+              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+                  Ficha técnica
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-mg-red">
+                  MG
+                </span>
+              </div>
+
+              <dl>
+                <FactRow label="Artista">
+                  <span className="font-heading text-2xl uppercase tracking-tight">
+                    {artist.name}
+                  </span>
+                </FactRow>
+                {artist.genre && <FactRow label="Género">{artist.genre}</FactRow>}
+                {artist.location && <FactRow label="Ubicación">{artist.location}</FactRow>}
+                {artist.label && <FactRow label="Sello">{artist.label}</FactRow>}
+                {artist.booking_email && (
+                  <FactRow label="Booking / Prensa">
+                    <a
+                      href={`mailto:${artist.booking_email}`}
+                      className="break-all transition-colors hover:text-mg-red"
+                    >
+                      {artist.booking_email}
+                    </a>
+                  </FactRow>
+                )}
+                {artist.agent && (
+                  <FactRow label="Management">
+                    <span className="flex items-center gap-2">
+                      {artist.agent.name}
+                      <a
+                        href={`mailto:${artist.agent.email}`}
+                        aria-label={`Email ${artist.agent.name}`}
+                        className="p-1 text-white/50 transition-colors hover:text-mg-red"
+                      >
+                        <Mail size={15} />
+                      </a>
+                    </span>
+                  </FactRow>
+                )}
+                <div className="border-b border-white/10 px-6 py-4">
+                  <dt className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+                    Plataformas
+                  </dt>
+                  <dd className="mt-3">
+                    <PlatformLinks links={artist.social_links} />
+                  </dd>
+                </div>
+              </dl>
+
+              {bookingEmail && (
+                <a
+                  href={`mailto:${bookingEmail}?subject=Booking: ${artist.name}`}
+                  className="block bg-mg-red px-6 py-5 text-center font-mono text-xs font-medium uppercase tracking-[0.3em] text-white transition-colors duration-300 hover:bg-white hover:text-mg-black"
+                >
+                  Solicitar booking
+                </a>
+              )}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {/* Escuchar */}
+      {hasListenSection && (
+        <section
+          id="escuchar"
+          className="container mx-auto scroll-mt-28 px-4 py-14 md:scroll-mt-36 md:px-6 md:py-20 lg:px-10"
+        >
+          <SectionKicker index={nextSection()} label="Escuchar" />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {artist.spotify_embed && (
+              <iframe
+                src={artist.spotify_embed}
+                width="100%"
+                height="352"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                title={`${artist.name} en Spotify`}
+                style={{ borderRadius: "12px" }}
+              />
+            )}
+            {artist.spotify_album_embed && (
+              <iframe
+                src={artist.spotify_album_embed}
+                width="100%"
+                height="352"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                title={`${artist.name} - Último álbum`}
+                style={{ borderRadius: "12px" }}
+              />
+            )}
             {artist.stream_embed && (
               <iframe
                 src={artist.stream_embed}
@@ -169,53 +299,70 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                 allowFullScreen
                 loading="lazy"
                 title={`${artist.name} stream`}
-                style={{ borderRadius: '24px' }}
+                className={
+                  !artist.spotify_album_embed ? "lg:col-span-1" : "lg:col-span-2"
+                }
+                style={{ borderRadius: "12px" }}
               />
             )}
-          </div>
-        </div>
-      </section>
-
-      {/* Discography Section */}
-      {artist.discography && artist.discography.length > 0 && (
-        <section className="container mx-auto px-4 py-12">
-          <h2 className="font-heading text-3xl uppercase tracking-tight mb-8 flex items-center gap-3">
-            <Disc3 size={28} className="text-mg-red" />
-            Discografia
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {artist.discography.map((album, index) => (
-              <div
-                key={index}
-                className="bg-zinc-900/50 border border-white/10 rounded-lg p-6 hover:border-mg-red/50 transition-colors"
-              >
-                <h3 className="text-lg font-bold mb-1">{album.title}</h3>
-                <p className="text-zinc-400 text-sm mb-3">{album.year}</p>
-                {album.spotify_url && (
-                  <a
-                    href={album.spotify_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-mg-red hover:underline"
-                  >
-                    <Music2 size={14} />
-                    Escuchar en Spotify
-                  </a>
-                )}
-              </div>
-            ))}
           </div>
         </section>
       )}
 
-      {/* Videos Section */}
+      {/* Discografía — tracklist editorial */}
+      {artist.discography && artist.discography.length > 0 && (
+        <section className="container mx-auto px-4 py-14 md:px-6 md:py-20 lg:px-10">
+          <SectionKicker index={nextSection()} label="Discografía" />
+          <ol className="border-t border-white/10">
+            {artist.discography.map((album, index) => {
+              const row = (
+                <>
+                  <span className="col-span-2 font-mono text-sm text-white/40 transition-colors duration-300 group-hover:text-mg-red md:col-span-1">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="col-span-6 font-heading text-2xl uppercase tracking-tight text-white transition-colors duration-300 group-hover:text-mg-red md:col-span-7 md:text-4xl">
+                    {album.title}
+                  </span>
+                  <span className="col-span-2 font-mono text-xs uppercase tracking-[0.2em] text-white/50 md:text-sm">
+                    {album.year}
+                  </span>
+                  <span className="col-span-2 flex justify-end text-white/30 transition-all duration-300 group-hover:text-mg-red">
+                    {album.spotify_url && <DiagonalArrow size={22} strokeWidth={1.75} />}
+                  </span>
+                </>
+              )
+
+              return (
+                <li key={index}>
+                  {album.spotify_url ? (
+                    <a
+                      href={album.spotify_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group grid grid-cols-12 items-center gap-4 border-b border-white/10 px-2 py-5 transition-colors duration-300 hover:bg-white/[0.03] md:py-6"
+                    >
+                      {row}
+                    </a>
+                  ) : (
+                    <div className="group grid grid-cols-12 items-center gap-4 border-b border-white/10 px-2 py-5 md:py-6">
+                      {row}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ol>
+        </section>
+      )}
+
+      {/* Videos */}
       {artist.videos && artist.videos.length > 0 && (
-        <section className="container mx-auto px-4 py-12">
-          <h2 className="font-heading text-3xl uppercase tracking-tight mb-8">Videos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section className="container mx-auto px-4 py-14 md:px-6 md:py-20 lg:px-10">
+          <SectionKicker index={nextSection()} label="Videos" />
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             {artist.videos.map((video, index) => (
-              <div key={index} className="space-y-3">
-                <div className="aspect-video bg-zinc-900 rounded-lg overflow-hidden">
+              <figure key={index}>
+                <div className="aspect-video overflow-hidden border border-white/10 bg-zinc-950">
                   <iframe
                     src={video.youtube_embed_url}
                     width="100%"
@@ -223,36 +370,49 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     title={video.title}
-                    className="w-full h-full"
+                    className="h-full w-full"
                   />
                 </div>
-                <h3 className="text-sm font-medium text-zinc-300">{video.title}</h3>
-              </div>
+                <figcaption className="mt-3 flex items-baseline gap-3">
+                  <span className="font-mono text-[10px] text-mg-red">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/60">
+                    {video.title}
+                  </span>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </section>
       )}
 
-      {/* Media Section */}
-      {((artist.media.audio?.length ?? 0) > 0 || (artist.media.video?.length ?? 0) > 0) && (
-        <section className="container mx-auto px-4 py-12">
-          <h2 className="font-heading text-3xl uppercase tracking-tight mb-8">Media</h2>
+      {/* Media */}
+      {hasMedia && (
+        <section className="container mx-auto px-4 py-14 md:px-6 md:py-20 lg:px-10">
+          <SectionKicker index={nextSection()} label="Media" />
           <div className="space-y-8">
             {artist.media.audio?.map((embedUrl, index) => (
-              <div key={`audio-${index}`} className="aspect-video md:aspect-[2/1] bg-zinc-900 rounded-lg overflow-hidden">
+              <div
+                key={`audio-${index}`}
+                className="aspect-video overflow-hidden border border-white/10 bg-zinc-950 md:aspect-[2/1]"
+              >
                 <iframe
                   src={embedUrl}
                   width="100%"
                   height="100%"
                   allow="autoplay"
                   title={`${artist.name} audio ${index + 1}`}
-                  className="w-full h-full"
+                  className="h-full w-full"
                 />
               </div>
             ))}
 
             {artist.media.video?.map((embedUrl, index) => (
-              <div key={`video-${index}`} className="aspect-video bg-zinc-900 rounded-lg overflow-hidden">
+              <div
+                key={`video-${index}`}
+                className="aspect-video overflow-hidden border border-white/10 bg-zinc-950"
+              >
                 <iframe
                   src={embedUrl}
                   width="100%"
@@ -260,7 +420,7 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   title={`${artist.name} video ${index + 1}`}
-                  className="w-full h-full"
+                  className="h-full w-full"
                 />
               </div>
             ))}
@@ -268,16 +428,162 @@ export default async function ArtistaPage({ params }: ArtistPageProps) {
         </section>
       )}
 
-      {/* Back to Artists Link */}
-      <section className="container mx-auto px-4 py-12">
-        <Link
-          href="/artistas"
-          className="inline-flex items-center gap-2 text-sm uppercase font-bold hover:text-mg-red transition-colors group"
-        >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          Volver a Artistas
-        </Link>
-      </section>
-    </>
+      {/* Galería */}
+      {artist.gallery && artist.gallery.length > 0 && (
+        <section className="container mx-auto px-4 py-14 md:px-6 md:py-20 lg:px-10">
+          <SectionKicker index={nextSection()} label="Galería" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
+            {artist.gallery.map((photoUrl, index) => (
+              <figure
+                key={photoUrl}
+                className="group relative aspect-[4/5] overflow-hidden border border-white/10 bg-zinc-950"
+              >
+                <Image
+                  src={photoUrl}
+                  alt={`${artist.name} — foto ${index + 1}`}
+                  fill
+                  className="object-cover grayscale transition-[filter,transform] duration-700 ease-out group-hover:grayscale-0 group-hover:scale-[1.04]"
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                />
+                <span className="absolute left-0 top-0 border-b border-r border-white/10 bg-mg-black/70 px-2.5 py-1.5 font-mono text-[10px] tracking-[0.3em] text-white/60 backdrop-blur-sm transition-colors duration-500 group-hover:text-mg-red">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Prensa & Booking */}
+      {bookingEmail && (
+        <section className="relative overflow-hidden border-t border-white/10">
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 55% 60% at 90% 100%, rgba(232,32,12,0.16) 0%, transparent 60%)",
+            }}
+          />
+          <div className="container relative mx-auto px-4 py-16 md:px-6 md:py-24 lg:px-10">
+            <SectionKicker index={nextSection()} label="Prensa & Booking" />
+            <div className="grid grid-cols-1 items-end gap-8 lg:grid-cols-12">
+              <div className="lg:col-span-7">
+                <h2 className="font-heading uppercase leading-[0.9] tracking-tight text-white text-[clamp(2.5rem,6vw,4.5rem)]">
+                  ¿Prensa, fechas
+                  <br />o colaboraciones?
+                </h2>
+                <p className="mt-5 max-w-lg text-sm leading-relaxed text-zinc-400 md:text-base">
+                  Para entrevistas, fechas, festivales y colaboraciones con{" "}
+                  {artist.name}, escríbenos a{" "}
+                  <a
+                    href={`mailto:${bookingEmail}`}
+                    className="text-white underline decoration-mg-red underline-offset-4 transition-colors hover:text-mg-red"
+                  >
+                    {bookingEmail}
+                  </a>
+                  . El kit de prensa incluye biografía en tres versiones y fotos
+                  en alta resolución listas para publicación.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-4 lg:col-span-5 lg:justify-end">
+                {artist.press_kit_url ? (
+                  <a
+                    href={artist.press_kit_url}
+                    download
+                    className="inline-flex items-center gap-3 bg-mg-red px-6 py-3.5 text-white transition-colors duration-300 hover:bg-white hover:text-mg-black md:px-8 md:py-4"
+                  >
+                    <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
+                      Descargar kit de prensa
+                    </span>
+                    <DiagonalArrow size={18} strokeWidth={1.75} />
+                  </a>
+                ) : (
+                  <a
+                    href={`mailto:${bookingEmail}?subject=Kit de prensa: ${artist.name}`}
+                    className="inline-flex items-center gap-3 border-2 border-white/80 px-6 py-3 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black md:px-8 md:py-3.5"
+                  >
+                    <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
+                      Solicitar kit de prensa
+                    </span>
+                    <DiagonalArrow size={18} strokeWidth={1.75} />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Más del roster — prev / next */}
+      {artists.length > 1 && (
+        <nav aria-label="Más artistas del roster" className="border-t border-white/10">
+          <div className="grid md:grid-cols-2">
+            <Link
+              href={`/artistas/${prevArtist.slug}`}
+              className="group flex items-center gap-5 border-b border-white/10 px-4 py-8 transition-colors duration-300 hover:bg-white/[0.03] md:border-b-0 md:border-r md:px-10 md:py-14"
+            >
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden border border-white/10 md:h-28 md:w-28">
+                <Image
+                  src={prevArtist.photo_url}
+                  alt={prevArtist.name}
+                  fill
+                  className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
+                  sizes="112px"
+                />
+              </div>
+              <div>
+                <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+                  <ArrowLeft
+                    size={12}
+                    className="transition-transform duration-300 group-hover:-translate-x-1"
+                  />
+                  Anterior
+                </p>
+                <p className="mt-2 font-heading text-3xl uppercase leading-none text-white transition-colors duration-300 group-hover:text-mg-red md:text-4xl">
+                  {prevArtist.name}
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              href={`/artistas/${nextArtist.slug}`}
+              className="group flex flex-row-reverse items-center gap-5 px-4 py-8 text-right transition-colors duration-300 hover:bg-white/[0.03] md:px-10 md:py-14"
+            >
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden border border-white/10 md:h-28 md:w-28">
+                <Image
+                  src={nextArtist.photo_url}
+                  alt={nextArtist.name}
+                  fill
+                  className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
+                  sizes="112px"
+                />
+              </div>
+              <div>
+                <p className="flex items-center justify-end gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
+                  Siguiente
+                  <ArrowRight
+                    size={12}
+                    className="transition-transform duration-300 group-hover:translate-x-1"
+                  />
+                </p>
+                <p className="mt-2 font-heading text-3xl uppercase leading-none text-white transition-colors duration-300 group-hover:text-mg-red md:text-4xl">
+                  {nextArtist.name}
+                </p>
+              </div>
+            </Link>
+          </div>
+
+          <div className="border-t border-white/10 py-6 text-center md:py-8">
+            <Link
+              href="/artistas"
+              className="inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.3em] text-white/50 transition-colors hover:text-mg-red"
+            >
+              Ver todo el roster
+              <DiagonalArrow size={16} strokeWidth={1.75} />
+            </Link>
+          </div>
+        </nav>
+      )}
+    </article>
   )
 }
