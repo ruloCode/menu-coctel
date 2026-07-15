@@ -1,3 +1,5 @@
+import { existsSync } from "fs"
+import { join } from "path"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -29,9 +31,29 @@ export async function generateMetadata({ params }: ArtistPageProps) {
     }
   }
 
+  // Per-artist OG card if it was generated, otherwise the brand card
+  const ogFile = `/og/og-${artist.slug}.jpg`
+  const ogImage = existsSync(join(process.cwd(), "public", ogFile))
+    ? ogFile
+    : "/og/og-home.jpg"
+  const title = `${artist.name} | MG Company Group`
+  const description = artist.meta_description ?? artist.bio
+
   return {
-    title: `${artist.name} | MG Company Group`,
-    description: artist.meta_description ?? artist.bio,
+    title,
+    description,
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: artist.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
   }
 }
 

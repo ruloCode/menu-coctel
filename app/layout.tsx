@@ -14,8 +14,32 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mgcompany.co"),
   title: "MG Company Group | Productora Artistica",
   description: "MG Company Group es una productora artistica integral. Musica, cine, eventos en vivo y desarrollo de talento.",
+  openGraph: {
+    type: "website",
+    locale: "es_CO",
+    siteName: "MG Company Group",
+    title: "MG Company Group | Productora Artística",
+    description:
+      "Música, film, management y eventos en vivo. Convertimos talento en marca.",
+    images: [
+      {
+        url: "/og/og-home.jpg",
+        width: 1200,
+        height: 630,
+        alt: "MG Company Group — Productora Artística",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MG Company Group | Productora Artística",
+    description:
+      "Música, film, management y eventos en vivo. Convertimos talento en marca.",
+    images: ["/og/og-home.jpg"],
+  },
 }
 
 export default function RootLayout({
