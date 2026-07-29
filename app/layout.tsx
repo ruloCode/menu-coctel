@@ -2,8 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
-import SiteHeader from "@/components/site-header"
-import SiteFooter from "@/components/site-footer"
+import SiteChrome from "@/components/site-chrome"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"], variable: "--font-bebas" })
@@ -50,11 +49,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <body className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-body`}>
-        <SiteHeader />
-        <main className="min-h-screen pt-16 md:pt-24 lg:pt-28">
-          {children}
-        </main>
-        <SiteFooter />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   )

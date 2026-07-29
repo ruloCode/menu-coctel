@@ -187,6 +187,28 @@ html {
   scroll-behavior: smooth;
 }
 
+/* MG1 invitation */
+@keyframes mg1-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mg1-eq {
+  0%, 100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mg1-anim {
+    animation: none !important;
+  }
+}
+
 /* Masonry Grid Layout - Fixed 3 columns on desktop */
 .masonry-grid {
   display: grid;
