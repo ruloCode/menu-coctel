@@ -20,11 +20,35 @@ const WHATSAPP_URL = `https://wa.me/573150589998?text=${encodeURIComponent(
   `Hola, crew de MG. Soy ${INVITEE} — vi la propuesta para ser jurado de MG1. ¡Hablemos!`,
 )}`
 
+const OG_TITLE = `${INVITEE}, queremos que seas jurado de MG1`
+const OG_DESCRIPTION =
+  "Tu silla en la mesa del primer reality musical de MG Company te espera: 4 capítulos, 3 días de rodaje y gran final en vivo en Bogotá."
+
 export const metadata: Metadata = {
   title: "MG1 · Invitación Jurado | MG Company Group",
-  description:
-    "Propuesta confidencial: jurado invitado de MG1, el primer reality musical de MG Company.",
+  description: OG_DESCRIPTION,
   robots: { index: false, follow: false },
+  openGraph: {
+    type: "website",
+    locale: "es_CO",
+    siteName: "MG Company Group",
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
+    images: [
+      {
+        url: "/og/og-mg1-jurado.jpg",
+        width: 1200,
+        height: 630,
+        alt: `MG1 — Propuesta confidencial: ${INVITEE}, jurado invitado`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: OG_TITLE,
+    description: OG_DESCRIPTION,
+    images: ["/og/og-mg1-jurado.jpg"],
+  },
 }
 
 const HERO_META = [
@@ -40,7 +64,7 @@ const MARQUEE_ITEMS = [
   "PRIMERA EDICIÓN · BOGOTÁ",
 ]
 
-const hl = "text-mg-red font-semibold"
+const hl = "text-mg-red-bright font-semibold"
 
 const CHAPTERS: { num: string; title: string; desc: React.ReactNode }[] = [
   {
@@ -185,7 +209,7 @@ export default function MG1JuradoPage() {
               <ScrollReveal direction="up">
                 <div className="flex items-center gap-3">
                   <span className="text-mg-red text-xl leading-none">&#10022;</span>
-                  <span className="font-mono text-mg-red text-[11px] md:text-xs uppercase tracking-[0.3em] font-medium">
+                  <span className="font-mono text-mg-red-bright text-xs uppercase tracking-[0.3em] font-medium">
                     [ MG Company presenta ]
                   </span>
                   <span className="h-px flex-1 bg-mg-red/40" />
@@ -212,10 +236,10 @@ export default function MG1JuradoPage() {
                   <p className="font-heading text-xl md:text-2xl uppercase tracking-wide">
                     Propuesta para {INVITEE} · Jurado Invitado
                   </p>
-                  <SpecMeta items={HERO_META} className="mt-3" />
+                  <SpecMeta items={HERO_META} className="mt-3 [&_dd]:text-mg-red-bright" />
                 </div>
 
-                <div className="mt-10 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+                <div className="mt-10 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">
                   <span className="animate-bounce motion-reduce:animate-none">
                     &darr;
                   </span>
@@ -240,19 +264,19 @@ export default function MG1JuradoPage() {
                         "linear-gradient(135deg, #f7e08a, #d4af37 45%, #9a7a24)",
                     }}
                   >
-                    <p className="font-mono text-[9px] font-medium uppercase tracking-[0.34em]">
+                    <p className="font-mono text-[10px] font-medium uppercase tracking-[0.34em]">
                       Presentado a
                     </p>
                     <p className="font-heading text-3xl uppercase tracking-[0.1em]">
                       {INVITEE}
                     </p>
-                    <p className="font-mono text-[9px] font-medium uppercase tracking-[0.2em]">
+                    <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em]">
                       Jurado invitado · MG1 primera edición
                     </p>
                   </div>
                 </PopIn>
 
-                <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                <p className="mt-4 text-center font-mono text-xs uppercase tracking-[0.2em] text-zinc-400">
                   Muévelo con el cursor · arrástralo para girarlo
                 </p>
               </Parallax>
@@ -265,7 +289,7 @@ export default function MG1JuradoPage() {
 
       {/* 01 · La historia */}
       <section className="container mx-auto px-4 py-16 md:px-6 md:py-24 lg:px-10">
-        <ScrollReveal direction="up">
+        <ScrollReveal direction="up" className="[&_.font-mono]:text-mg-red-bright">
           <SectionHeading
             index="01"
             kicker="La historia"
@@ -286,7 +310,7 @@ export default function MG1JuradoPage() {
         <div className="mt-10 md:mt-14">
           <Statement />
           <ScrollReveal direction="up" delay={0.2}>
-            <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed text-zinc-400">
+            <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed text-zinc-300">
               Un nicho sin saturar en Colombia:{" "}
               <b className={hl}>temas terminados, con calidad de show</b>. Ronda a
               ronda, alguien decide quién sigue y quién se va.{" "}
@@ -311,7 +335,7 @@ export default function MG1JuradoPage() {
                     {chapter.title}
                   </h3>
                 </div>
-                <p className="col-span-10 col-start-3 md:col-span-7 md:col-start-6 text-sm md:text-base leading-relaxed text-zinc-400">
+                <p className="col-span-10 col-start-3 md:col-span-7 md:col-start-6 text-sm md:text-base leading-relaxed text-zinc-300">
                   {chapter.desc}
                 </p>
               </div>
@@ -324,7 +348,7 @@ export default function MG1JuradoPage() {
 
       {/* 02 · Los discos */}
       <section className="container mx-auto px-4 py-16 md:px-6 md:py-24 lg:px-10">
-        <ScrollReveal direction="up">
+        <ScrollReveal direction="up" className="[&_.font-mono]:text-mg-red-bright">
           <SectionHeading
             index="02"
             kicker="El símbolo"
@@ -365,7 +389,7 @@ export default function MG1JuradoPage() {
                   >
                     {disc.label}
                   </p>
-                  <p className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-zinc-500">
+                  <p className="font-mono text-[11px] md:text-xs uppercase tracking-[0.2em] text-zinc-400">
                     {disc.sub}
                   </p>
                 </div>
@@ -378,7 +402,7 @@ export default function MG1JuradoPage() {
       {/* 03 · Tu lugar en la mesa */}
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="container mx-auto px-4 py-16 md:px-6 md:py-24 lg:px-10">
-          <ScrollReveal direction="up">
+          <ScrollReveal direction="up" className="[&_.font-mono]:text-mg-red-bright">
             <SectionHeading
               index="03"
               kicker="Tu silla"
@@ -466,7 +490,7 @@ export default function MG1JuradoPage() {
           </PopIn>
 
           <ScrollReveal direction="up" delay={0.3}>
-            <p className="mx-auto mt-6 max-w-2xl text-base md:text-lg leading-relaxed text-white/90">
+            <p className="mx-auto mt-6 max-w-2xl text-base md:text-lg leading-relaxed text-white">
               Queremos contarte <b>el formato completo</b> y cuadrar fechas contigo.
               Escríbenos y coordinamos una <b>llamada de 20 minutos</b> con el crew de
               MG. — <b>MG Company · Bogotá</b>
@@ -502,11 +526,11 @@ export default function MG1JuradoPage() {
               height={36}
               className="h-9 w-9"
             />
-            <span className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+            <span className="font-mono text-[11px] md:text-xs uppercase tracking-[0.25em] text-zinc-400">
               Concurso MG1 · Primera edición
             </span>
           </div>
-          <span className="font-mono text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-mg-red">
+          <span className="font-mono text-[11px] md:text-xs uppercase tracking-[0.25em] text-mg-red-bright">
             Confidencial
           </span>
         </div>

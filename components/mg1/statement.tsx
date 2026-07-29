@@ -29,7 +29,7 @@ export default function Statement() {
       <motion.span variants={word} className="inline-block text-mg-red">
         Canciones,
       </motion.span>{" "}
-      <span className="relative inline-block text-zinc-600">
+      <span className="relative inline-block text-zinc-500">
         <motion.span variants={word} className="inline-block">
           no freestyle
         </motion.span>

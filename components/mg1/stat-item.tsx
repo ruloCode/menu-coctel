@@ -28,14 +28,14 @@ export default function StatItem({ value, label, sub, index }: StatItemProps) {
         className="font-heading text-[clamp(2.75rem,5vw,4rem)] leading-none text-mg-red"
       />
       <motion.p
-        className="mt-2 font-mono text-[10px] uppercase tracking-[0.15em] text-zinc-400"
+        className="mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-zinc-300"
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.6 }}
         transition={{ duration: 0.5, delay: delay + 0.3 }}
       >
         {label}
-        <span className="block text-zinc-600">{sub}</span>
+        <span className="block text-zinc-400">{sub}</span>
       </motion.p>
     </div>
   )

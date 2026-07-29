@@ -69,6 +69,8 @@ const config = {
         },
         mg: {
           red: '#E8200C',
+          // Rojo AA-safe para texto pequeño sobre fondo oscuro (6.2:1 sobre #111)
+          'red-bright': '#FF5A45',
           'red-80': 'rgba(232,32,12,0.8)',
           'red-60': 'rgba(232,32,12,0.6)',
           'red-40': 'rgba(232,32,12,0.4)',
