@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 
 interface SectionHeadingProps {
   title: string
-  subtitle?: string
+  subtitle?: React.ReactNode
   index?: string
   kicker?: string
   className?: string
