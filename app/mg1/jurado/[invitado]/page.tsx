@@ -21,15 +21,22 @@ interface Props {
   params: Promise<{ invitado: string }>
 }
 
+interface Invitee {
+  name: string
+  // Copy dirigido a un grupo (femenino plural, p. ej. un dúo de chicas)
+  plural?: boolean
+}
+
 // Invitados curados: nombre exacto + OG personalizada en /og/og-mg1-jurado-<slug>.jpg
-const KNOWN_INVITEES: Record<string, string> = {
-  thaissa: "Thaissa",
-  "jony-roy": "Jony Roy",
+const KNOWN_INVITEES: Record<string, Invitee> = {
+  thaissa: { name: "Thaissa" },
+  "jony-roy": { name: "Jony Roy" },
+  "queens-tafari": { name: "Queens Tafari", plural: true },
 }
 
 // Cualquier otro slug genera la invitación derivando el nombre de la URL
 // (p. ej. /mg1/jurado/valentina-perez -> "Valentina Perez")
-function inviteeName(slug: string): string | null {
+function inviteeInfo(slug: string): Invitee | null {
   const key = slug.toLowerCase()
   if (KNOWN_INVITEES[key]) return KNOWN_INVITEES[key]
 
@@ -42,16 +49,19 @@ function inviteeName(slug: string): string | null {
   const cleaned = decoded.replace(/-/g, " ").trim()
   if (!cleaned || cleaned.length > 32) return null
   if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ][a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]*$/.test(cleaned)) return null
-  return cleaned
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ")
+  return {
+    name: cleaned
+      .split(/\s+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" "),
+  }
 }
 
-function whatsappUrl(name: string) {
-  return `https://wa.me/573150589998?text=${encodeURIComponent(
-    `Hola, crew de MG. Soy ${name} — vi la propuesta para ser jurado de MG1. ¡Hablemos!`,
-  )}`
+function whatsappUrl(name: string, plural?: boolean) {
+  const text = plural
+    ? `Hola, crew de MG. Somos ${name} — vimos la propuesta para ser juradas de MG1. ¡Hablemos!`
+    : `Hola, crew de MG. Soy ${name} — vi la propuesta para ser jurado de MG1. ¡Hablemos!`
+  return `https://wa.me/573150589998?text=${encodeURIComponent(text)}`
 }
 
 export function generateStaticParams() {
@@ -60,18 +70,22 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { invitado } = await params
-  const name = inviteeName(invitado)
-  if (!name) {
+  const invitee = inviteeInfo(invitado)
+  if (!invitee) {
     return { title: "MG1 | MG Company Group" }
   }
+  const { name, plural } = invitee
 
   const ogFile = `/og/og-mg1-jurado-${invitado.toLowerCase()}.jpg`
   const ogImage = existsSync(join(process.cwd(), "public", ogFile))
     ? ogFile
     : "/og/og-mg1-jurado.jpg"
-  const ogTitle = `${name}, queremos que seas jurado de MG1`
-  const ogDescription =
-    "Tu silla en la mesa del primer reality musical de MG Company te espera: 4 capítulos, 3 días de rodaje y gran final en vivo en Bogotá."
+  const ogTitle = plural
+    ? `${name}, queremos que sean juradas de MG1`
+    : `${name}, queremos que seas jurado de MG1`
+  const ogDescription = plural
+    ? "Su silla en la mesa del primer reality musical de MG Company las espera: 4 capítulos, 3 días de rodaje y gran final en vivo en Bogotá."
+    : "Tu silla en la mesa del primer reality musical de MG Company te espera: 4 capítulos, 3 días de rodaje y gran final en vivo en Bogotá."
 
   return {
     title: "MG1 · Invitación Jurado | MG Company Group",
@@ -88,7 +102,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `MG1 — Propuesta confidencial: ${name}, jurado invitado`,
+          alt: `MG1 — Propuesta confidencial: ${name}, ${plural ? "juradas invitadas" : "jurado invitado"}`,
         },
       ],
     },
@@ -170,75 +184,83 @@ const DISCS: { tier: DiscTier; label: string; sub: string; glow?: boolean }[] = 
   { tier: "ruby", label: "Ruby", sub: "Campeón MG1", glow: true },
 ]
 
-const ROLE_CARDS: { title: string; items: React.ReactNode[] }[] = [
-  {
-    title: "Lo que haces",
-    items: [
-      <>
-        <b className="text-white">Voz y voto real en cada corte</b> junto a los otros{" "}
-        <b className={hl}>dos jurados de MG</b>.
-      </>,
-      <>
-        <b className="text-white">Mentor 1:1 en la gran final:</b> una dinámica de{" "}
-        <b className={hl}>balotas</b> te asigna (o te elige) un finalista y lo acompañas
-        en el estudio a pulir su <b className={hl}>tema inédito</b>.
-      </>,
-      <>
-        <b className="text-white">Protagonista de los momentos clave:</b>{" "}
-        deliberaciones, desacuerdos de mesa,{" "}
-        <b className={hl}>ceremonia de discos</b>, balotas.
-      </>,
-      <>
-        <b className="text-white">Total libertad editorial:</b>{" "}
-        <b className={hl}>nadie te guioniza</b> opiniones ni veredictos.
-      </>,
-    ],
-  },
-  {
-    title: "Lo que te llevas",
-    items: [
-      <>
-        <b className="text-white">Clips editados de ti</b>, con{" "}
-        <b className={hl}>calidad de show</b>, listos para tus redes.
-      </>,
-      <>
-        <b className="text-white">Exposición cruzada</b> con la audiencia de MG y de los{" "}
-        <b className={hl}>12 artistas</b>, toda la temporada (
-        <b className={hl}>estreno semanal</b> + clips verticales).
-      </>,
-      <>
-        <b className="text-white">Asociación con un formato original:</b> canción
-        terminada, no freestyle — <b className={hl}>un nicho sin saturar</b> en
-        Colombia.
-      </>,
-      <>
-        <b className="text-white">La experiencia completa</b> de un rodaje de reality,{" "}
-        <b className={hl}>sin costo alguno para ti</b>.
-      </>,
-    ],
-  },
-  {
-    title: "Lo que te pedimos",
-    items: [
-      <>
-        <b className="text-white">3 días de rodaje</b> en Bogotá:{" "}
-        <b className={hl}>2 en estudio + la gran final en vivo</b> (fechas por confirmar
-        contigo).
-      </>,
-      <>
-        <b className="text-white">Confirmar por escrito</b> las fechas y la{" "}
-        <b className={hl}>hora de llegada</b> de cada día.
-      </>,
-      <>
-        <b className="text-white">2 outfits</b> por cada día de rodaje.
-      </>,
-      <>
-        <b className="text-white">Respuestas honestas y con carácter</b> —{" "}
-        <b className={hl}>lo tuyo</b>.
-      </>,
-    ],
-  },
-]
+function roleCards(p: boolean): { title: string; items: React.ReactNode[] }[] {
+  return [
+    {
+      title: p ? "Lo que hacen" : "Lo que haces",
+      items: [
+        <>
+          <b className="text-white">Voz y voto real en cada corte</b> junto a los otros{" "}
+          <b className={hl}>dos jurados de MG</b>.
+        </>,
+        <>
+          <b className="text-white">{p ? "Mentoras" : "Mentor"} 1:1 en la gran final:</b>{" "}
+          una dinámica de <b className={hl}>balotas</b>{" "}
+          {p
+            ? "les asigna (o las elige) un finalista y lo acompañan"
+            : "te asigna (o te elige) un finalista y lo acompañas"}{" "}
+          en el estudio a pulir su <b className={hl}>tema inédito</b>.
+        </>,
+        <>
+          <b className="text-white">
+            {p ? "Protagonistas" : "Protagonista"} de los momentos clave:
+          </b>{" "}
+          deliberaciones, desacuerdos de mesa,{" "}
+          <b className={hl}>ceremonia de discos</b>, balotas.
+        </>,
+        <>
+          <b className="text-white">Total libertad editorial:</b>{" "}
+          <b className={hl}>nadie {p ? "les" : "te"} guioniza</b> opiniones ni
+          veredictos.
+        </>,
+      ],
+    },
+    {
+      title: p ? "Lo que se llevan" : "Lo que te llevas",
+      items: [
+        <>
+          <b className="text-white">Clips editados de {p ? "ustedes" : "ti"}</b>, con{" "}
+          <b className={hl}>calidad de show</b>, listos para {p ? "sus" : "tus"} redes.
+        </>,
+        <>
+          <b className="text-white">Exposición cruzada</b> con la audiencia de MG y de los{" "}
+          <b className={hl}>12 artistas</b>, toda la temporada (
+          <b className={hl}>estreno semanal</b> + clips verticales).
+        </>,
+        <>
+          <b className="text-white">Asociación con un formato original:</b> canción
+          terminada, no freestyle — <b className={hl}>un nicho sin saturar</b> en
+          Colombia.
+        </>,
+        <>
+          <b className="text-white">La experiencia completa</b> de un rodaje de reality,{" "}
+          <b className={hl}>sin costo alguno para {p ? "ustedes" : "ti"}</b>.
+        </>,
+      ],
+    },
+    {
+      title: p ? "Lo que les pedimos" : "Lo que te pedimos",
+      items: [
+        <>
+          <b className="text-white">3 días de rodaje</b> en Bogotá:{" "}
+          <b className={hl}>2 en estudio + la gran final en vivo</b> (fechas por
+          confirmar {p ? "con ustedes" : "contigo"}).
+        </>,
+        <>
+          <b className="text-white">Confirmar por escrito</b> las fechas y la{" "}
+          <b className={hl}>hora de llegada</b> de cada día.
+        </>,
+        <>
+          <b className="text-white">2 outfits</b> por cada día de rodaje.
+        </>,
+        <>
+          <b className="text-white">Respuestas honestas y con carácter</b> —{" "}
+          <b className={hl}>lo {p ? "suyo" : "tuyo"}</b>.
+        </>,
+      ],
+    },
+  ]
+}
 
 const STATS = [
   { value: 4, label: "Capítulos", sub: "estreno semanal" },
@@ -248,8 +270,10 @@ const STATS = [
 
 export default async function MG1JuradoPage({ params }: Props) {
   const { invitado } = await params
-  const name = inviteeName(invitado)
-  if (!name) notFound()
+  const invitee = inviteeInfo(invitado)
+  if (!invitee) notFound()
+  const { name } = invitee
+  const p = invitee.plural ?? false
 
   return (
     <div className="overflow-x-clip bg-mg-black text-white">
@@ -271,9 +295,10 @@ export default async function MG1JuradoPage({ params }: Props) {
 
                 <h1 className="mt-6 font-heading uppercase leading-[0.9] tracking-tight text-[clamp(3rem,9vw,7.5rem)]">
                   <span className="block text-stroke">{name},</span>
-                  <span className="block">queremos que seas</span>
+                  <span className="block">queremos que {p ? "sean" : "seas"}</span>
                   <span className="block">
-                    jurado de <span className="text-mg-red">MG1</span>.
+                    {p ? "juradas" : "jurado"} de{" "}
+                    <span className="text-mg-red">MG1</span>.
                   </span>
                 </h1>
 
@@ -283,12 +308,15 @@ export default async function MG1JuradoPage({ params }: Props) {
                   <b className={hl}>un mismo beat</b>,{" "}
                   <b className={hl}>canciones de verdad</b>. La historia ya está escrita
                   — solo le falta una voz en la mesa.{" "}
-                  <b className={hl}>La tuya, {name}.</b>
+                  <b className={hl}>
+                    {p ? `La de ustedes, ${name}.` : `La tuya, ${name}.`}
+                  </b>
                 </p>
 
                 <div className="mt-8 border-l-4 border-mg-red pl-5">
                   <p className="font-heading text-xl md:text-2xl uppercase tracking-wide">
-                    Propuesta para {name} · Jurado Invitado
+                    Propuesta para {name} ·{" "}
+                    {p ? "Juradas Invitadas" : "Jurado Invitado"}
                   </p>
                   <SpecMeta items={HERO_META} className="mt-3 [&_dd]:text-mg-red-bright" />
                 </div>
@@ -325,7 +353,8 @@ export default async function MG1JuradoPage({ params }: Props) {
                       {name}
                     </p>
                     <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em]">
-                      Jurado invitado · MG1 primera edición
+                      {p ? "Juradas invitadas" : "Jurado invitado"} · MG1 primera
+                      edición
                     </p>
                   </div>
                 </PopIn>
@@ -368,7 +397,9 @@ export default async function MG1JuradoPage({ params }: Props) {
               Un nicho sin saturar en Colombia:{" "}
               <b className={hl}>temas terminados, con calidad de show</b>. Ronda a
               ronda, alguien decide quién sigue y quién se va.{" "}
-              <b className={hl}>Esa mesa es la que te estamos ofreciendo.</b>
+              <b className={hl}>
+                Esa mesa es la que {p ? "les" : "te"} estamos ofreciendo.
+              </b>
             </p>
           </ScrollReveal>
         </div>
@@ -414,7 +445,9 @@ export default async function MG1JuradoPage({ params }: Props) {
                 <b className={hl}>Disco Ruby</b> y se lo lleva{" "}
                 <b className={hl}>el campeón</b> a su casa. La ceremonia de entrega es
                 el clímax de cada ronda…{" "}
-                <b className={hl}>y tú la entregas desde la mesa.</b>
+                <b className={hl}>
+                  y {p ? "ustedes la entregan" : "tú la entregas"} desde la mesa.
+                </b>
               </>
             }
           />
@@ -459,15 +492,18 @@ export default async function MG1JuradoPage({ params }: Props) {
           <ScrollReveal direction="up" className="[&_.font-mono]:text-mg-red-bright">
             <SectionHeading
               index="03"
-              kicker="Tu silla"
-              title="Tu lugar en la mesa"
+              kicker={p ? "Su silla" : "Tu silla"}
+              title={p ? "Su lugar en la mesa" : "Tu lugar en la mesa"}
               subtitle={
                 <>
-                  Ser jurado de MG1 es descubrir al próximo nombre de la escena{" "}
-                  <b className={hl}>antes que nadie</b> — y que la gente te vea hacerlo.
-                  Tu criterio decide quién avanza,{" "}
-                  <b className={hl}>tus frases se vuelven los clips</b> que todos
-                  comentan, y tu nombre queda en la{" "}
+                  Ser {p ? "juradas" : "jurado"} de MG1 es descubrir al próximo nombre
+                  de la escena <b className={hl}>antes que nadie</b> — y que la gente{" "}
+                  {p ? "las" : "te"} vea hacerlo. {p ? "Su" : "Tu"} criterio decide
+                  quién avanza,{" "}
+                  <b className={hl}>
+                    {p ? "sus" : "tus"} frases se vuelven los clips
+                  </b>{" "}
+                  que todos comentan, y {p ? "su" : "tu"} nombre queda en la{" "}
                   <b className={hl}>primera edición</b> de un formato hecho para crecer.
                 </>
               }
@@ -475,7 +511,7 @@ export default async function MG1JuradoPage({ params }: Props) {
           </ScrollReveal>
 
           <div className="mt-12 grid gap-6 md:mt-16 md:grid-cols-2">
-            {ROLE_CARDS.map((card, i) => (
+            {roleCards(p).map((card, i) => (
               <ScrollReveal key={card.title} direction="up" delay={i * 0.1}>
                 <div className="h-full border-t-4 border-mg-red bg-white/[0.03] p-6 transition-transform duration-300 hover:-translate-y-1 md:p-8">
                   <h3 className="font-heading text-2xl uppercase tracking-wide text-mg-red">
@@ -539,19 +575,21 @@ export default async function MG1JuradoPage({ params }: Props) {
             <h2 className="font-heading uppercase leading-[0.95] tracking-tight text-[clamp(2.5rem,6vw,5rem)]">
               El beat ya suena.
               <br />
-              Solo falta tu voz.
+              {p ? "Solo faltan sus voces." : "Solo falta tu voz."}
             </h2>
           </PopIn>
 
           <ScrollReveal direction="up" delay={0.3}>
             <p className="mx-auto mt-6 max-w-2xl text-base md:text-lg leading-relaxed text-white">
-              Queremos contarte <b>el formato completo</b> y cuadrar fechas contigo.
-              Escríbenos y coordinamos una <b>llamada de 20 minutos</b> con el crew de
-              MG. — <b>MG Company · Bogotá</b>
+              Queremos {p ? "contarles" : "contarte"} <b>el formato completo</b> y
+              cuadrar fechas {p ? "con ustedes" : "contigo"}.{" "}
+              {p ? "Escríbannos" : "Escríbenos"} y coordinamos una{" "}
+              <b>llamada de 20 minutos</b> con el crew de MG. —{" "}
+              <b>MG Company · Bogotá</b>
             </p>
 
             <a
-              href={whatsappUrl(name)}
+              href={whatsappUrl(name, p)}
               target="_blank"
               rel="noopener noreferrer"
               className="group mt-10 inline-flex items-center gap-4 border-2 border-white px-6 py-4 transition-colors duration-300 hover:bg-white hover:text-mg-red md:px-8 md:py-5"
