@@ -18,6 +18,13 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
+
+# fallback local de inscripciones MG1 (solo desarrollo)
+/.data
+
+# supabase cli
+/supabase/.temp
 
 # vercel
 .vercel
@@ -25,3 +32,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# material de trabajo MG1 (assets pesados y mockups, no van al repo)
+/Pics AbnerDK/
+/Invitación a ser jurado MG1/
+/MG1_Landing_Convocatoria*.html
+/Untitled

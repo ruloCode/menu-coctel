@@ -4,8 +4,9 @@ import { usePathname } from "next/navigation"
 import SiteHeader from "./site-header"
 import SiteFooter from "./site-footer"
 
-// Rutas standalone: sin header/footer del sitio (invitaciones, propuestas privadas)
-const STANDALONE_PREFIXES = ["/mg1/jurado"]
+// Rutas standalone: sin header/footer del sitio
+// (invitaciones, propuestas privadas y landings de conversión con su propio footer)
+const STANDALONE_PREFIXES = ["/mg1/jurado", "/mg1/convocatoria"]
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

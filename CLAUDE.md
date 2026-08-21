@@ -115,6 +115,12 @@ middleware.ts                     # Auth middleware for /admin routes
 | `/mg-flow/[slug]` | Show detail with episode list |
 | `/galeria` | Photo/video gallery with category filters |
 | `/registro` | Event registration with QR code generation |
+| `/mg1` | Redirect a `/mg1/convocatoria` |
+| `/mg1/convocatoria` | Landing publica del Concurso MG1 + formulario de inscripcion (persiste en Supabase) |
+| `/mg1/jurado/[invitado]` | Invitacion privada de jurado, parametrizada por slug |
+
+Las rutas en `STANDALONE_PREFIXES` (`components/site-chrome.tsx`) se renderizan sin
+header/footer del sitio: hoy `/mg1/jurado` y `/mg1/convocatoria`.
 
 ### Authentication & Authorization
 - Admin routes (`/admin/*`) are protected via middleware
@@ -127,6 +133,24 @@ middleware.ts                     # Auth middleware for /admin routes
 - Middleware matcher targets `/admin/:path*` routes
 
 ## Database Schema
+
+> Nota: `lib/supabase.ts` y las rutas `/admin` documentadas mas abajo aun no existen en
+> el repo. Lo que si esta conectado a Supabase hoy es el formulario de MG1.
+
+### `mg1_inscripciones` (migracion `supabase/migrations/002_...`)
+
+Inscripciones de la convocatoria MG1. Se escribe desde `app/api/mg1/inscripcion/route.ts`
+usando `lib/supabase-admin.ts` (nunca desde el cliente).
+
+RLS: policy de **INSERT para anon**, sin policy de SELECT/UPDATE/DELETE — los datos
+personales solo se leen con la `service_role` key. Un correo por edicion (indice unico
+sobre `lower(email), edicion`). El formulario trae honeypot (`website`) y validacion
+compartida en `lib/mg1-inscripcion.ts`.
+
+Sin credenciales de Supabase, en desarrollo el route handler cae a
+`.data/mg1-inscripciones.jsonl`; en produccion responde 503 en vez de perder datos.
+
+### `registros`
 
 The `registros` table structure:
 - `id`: Primary key
