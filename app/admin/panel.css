@@ -199,7 +199,13 @@
   flex-direction: column;
   gap: 8px;
 }
-.usuario { display: flex; align-items: center; gap: 8px; padding: 4px 6px; min-width: 0; }
+.usuario {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px; min-width: 0; width: 100%;
+  background: none; border: 1px solid transparent; border-radius: var(--r-md);
+  text-align: left; color: inherit;
+}
+.usuario:hover { background: var(--page); border-color: var(--grid); }
 .avatar {
   width: 26px; height: 26px; flex: 0 0 26px;
   border-radius: 50%;

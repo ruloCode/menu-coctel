@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react"
 import { seccionesVisibles, etiquetaRol } from "@/lib/mg/permisos"
 import type { Perfil } from "@/lib/mg/tipos"
 import { cerrarSesion } from "@/app/admin/acciones"
+import MiCuenta from "./mi-cuenta"
 
 const CLAVE_TEMA = "mg-panel-tema"
 
@@ -19,6 +20,7 @@ export default function PanelShell({
 }) {
   const pathname = usePathname()
   const [tema, setTema] = useState<"light" | "dark">("light")
+  const [miCuenta, setMiCuenta] = useState(false)
 
   useEffect(() => {
     const guardado = localStorage.getItem(CLAVE_TEMA)
@@ -76,13 +78,13 @@ export default function PanelShell({
           ))}
 
           <div className="side-foot">
-            <div className="usuario">
+            <button className="usuario" onClick={() => setMiCuenta(true)} title="Mi cuenta">
               <span className="avatar" aria-hidden>{iniciales}</span>
               <span className="usuario-txt">
                 <b>{perfil.nombre || perfil.email}</b>
                 <span>{etiquetaRol(perfil.rol)}</span>
               </span>
-            </div>
+            </button>
             <div style={{ display: "flex", gap: 6 }}>
               <button className="btn sm ghost" onClick={cambiarTema} title="Cambiar tema" style={{ flex: 1 }}>
                 {tema === "dark" ? "☀" : "☾"} <span className="txt">Tema</span>
@@ -98,6 +100,8 @@ export default function PanelShell({
 
         <main className="main">{children}</main>
       </div>
+
+      {miCuenta ? <MiCuenta perfil={perfil} onClose={() => setMiCuenta(false)} /> : null}
     </div>
   )
 }

@@ -725,3 +725,34 @@ export async function restaurarRespaldo(json: string) {
     return `♻️ Respaldo restaurado: ${a} artistas y ${p} proyectos actualizados (no se borró nada existente).`
   })
 }
+
+/* ============================================================
+   Mi cuenta
+   ============================================================ */
+
+/**
+ * Cambia la contrasena del usuario en sesion. Reautentica primero con la
+ * actual: sin eso, una sesion abierta en un equipo ajeno podria cambiarla sin
+ * conocerla y dejar al dueno fuera de su propia cuenta.
+ */
+export async function cambiarPassword(actual: string, nueva: string): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+
+  if (nueva.length < 8) return { ok: false, error: "La contraseña nueva necesita al menos 8 caracteres." }
+  if (nueva === actual) return { ok: false, error: "La contraseña nueva tiene que ser distinta de la actual." }
+
+  const supabase = await createClient()
+  const { error: authError } = await supabase.auth.signInWithPassword({
+    email: perfil.email,
+    password: actual,
+  })
+  if (authError) return { ok: false, error: "La contraseña actual no es correcta." }
+
+  const { error } = await supabase.auth.updateUser({ password: nueva })
+  if (error) return { ok: false, error: error.message }
+
+  await bitacora(`🔑 ${perfil.nombre || perfil.email} cambió su contraseña.`)
+  refrescar()
+  return OK
+}
