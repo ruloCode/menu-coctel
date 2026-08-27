@@ -118,9 +118,92 @@ middleware.ts                     # Auth middleware for /admin routes
 | `/mg1` | Redirect a `/mg1/convocatoria` |
 | `/mg1/convocatoria` | Landing publica del Concurso MG1 + formulario de inscripcion (persiste en Supabase) |
 | `/mg1/jurado/[invitado]` | Invitacion privada de jurado, parametrizada por slug |
+| `/admin/login` | Acceso al panel (entrar / crear cuenta) |
+| `/admin` | Panel · Resumen: KPIs, alertas y proximos eventos |
+| `/admin/calendario` | Calendario mensual de todos los eventos derivados |
+| `/admin/timeline` | Gantt de campanas (pre / release / post) |
+| `/admin/estudio` | Sesiones de grabacion agendadas por capacidad |
+| `/admin/artistas` | Roster y proyectos, editables en linea |
+| `/admin/fiestas` | Residencia mensual de showcases |
+| `/admin/redes` | Calendario de contenido (8 sub-vistas + composer) |
+| `/admin/radar` | Scouting del ecosistema con puntaje por rol |
+| `/admin/mg1` | Curaduria de las inscripciones de la convocatoria |
+| `/admin/plan` | Reglas del motor de fechas y capacidad de estudio |
+| `/admin/equipo` | Miembros, roles y activacion de cuentas (owner/admin) |
+| `/admin/datos` | Respaldos y bitacora completa |
 
 Las rutas en `STANDALONE_PREFIXES` (`components/site-chrome.tsx`) se renderizan sin
-header/footer del sitio: hoy `/mg1/jurado` y `/mg1/convocatoria`.
+header/footer del sitio: hoy `/mg1/jurado`, `/mg1/convocatoria` y `/admin`.
+
+## Panel administrativo (`/admin`)
+
+Centro de operaciones interno. Portado del prototipo `mg-dashboard_1.html`
+(localStorage) a Next.js + Supabase.
+
+### La idea central: el calendario no se guarda, se deriva
+
+Cada proyecto proyecta sus hitos **hacia atras desde su fecha de release**
+aplicando las reglas de `mg_config` (programacion hacia atras + colchones tipo
+cadena critica). Las sesiones de grabacion se agendan encima con un algoritmo
+EDF sobre la capacidad real del estudio. Cambiar una fecha de release recalcula
+todo el proyecto en cascada.
+
+Lo unico que se **persiste** del calendario son las excepciones:
+
+- `mg_eventos_estado` — fecha movida a mano, hito marcado como hecho, evento cancelado
+- `mg_eventos_extra` — eventos creados a mano
+
+Por eso los ids son TEXT y no uuid: el motor compone ids derivados
+(`p3:release`, `p3:ses2`, `party:2026-11`, `post:xxx`) y las excepciones apuntan
+a ese id. Con uuids habria que mantener una tabla de traduccion sin ganar nada.
+
+### Estructura
+
+```
+lib/mg/
+  tipos.ts         # modelo de dominio
+  fechas.ts        # utilidades YYYY-MM-DD (Date al mediodia: sin desfases de zona)
+  constantes.ts    # tipos de evento, estados, PLATS, PILARES, CATS del radar, SPECS
+  motor.ts         # eventosProyecto, agendarSesiones, eventosFiestas, calcularAlertas
+  radar.ts         # puntaje 0-100 por categoria + recomendacion
+  plan.ts          # plan automatico de contenido por lanzamiento, nomenclatura de assets
+  permisos.ts      # matriz de roles (espejo en cliente de lo que impone RLS)
+  datos.ts         # server-only: carga el Snapshot y el perfil actual
+lib/supabase/
+  client.ts        # navegador
+  server.ts        # Server Components / Actions
+  middleware.ts    # refresco de sesion + guardia de /admin
+app/admin/
+  acciones.ts      # todas las Server Actions (cada una valida permiso y deja bitacora)
+  panel.css        # sistema visual del panel (tema en [data-tema] sobre .panel)
+  login/           # fuera del layout autenticado, a proposito
+  (panel)/         # route group: todo lo que exige perfil activo
+components/admin/  # vistas, cada una cliente sobre el Snapshot que le pasa el server
+```
+
+`app/admin/login` NO puede vivir dentro del route group `(panel)`: ese layout
+exige perfil activo y redirige a `/admin/login`, lo que causaria un bucle.
+
+### Roles
+
+`owner` · `admin` · `manager` · `contenido` · `artista` · `viewer`
+(ver `lib/mg/permisos.ts` y la tabla en `/admin/equipo`).
+
+La autoridad real es **RLS en Postgres**, no la interfaz. Las policies llaman a
+funciones SECURITY DEFINER (`es_staff()`, `puede_operar()`, `puede_publicar()`,
+`es_admin()`, `mi_artista_id()`) — nunca consultan `perfiles` directamente,
+porque una policy sobre `perfiles` que lea `perfiles` entra en recursion.
+
+Alta de usuarios: cada quien crea su cuenta en `/admin/login`. El trigger
+`handle_new_user` deja al **primer** usuario como `owner` activo y a todos los
+demas como `viewer` inactivo, a la espera de que un admin los habilite. Nadie
+consigue acceso solo por registrarse.
+
+Barandas en `perfiles` (triggers `proteger_perfil` y `exigir_un_owner`):
+nadie cambia su propio rol, estado ni artista vinculado; solo el owner toca al
+owner; y siempre queda al menos un owner activo. Cuando `auth.uid()` es NULL
+(service_role o SQL directo) los triggers ceden: es la via de recuperacion si
+se pierde el acceso del unico owner.
 
 ### Authentication & Authorization
 - Admin routes (`/admin/*`) are protected via middleware
@@ -149,6 +232,25 @@ compartida en `lib/mg1-inscripcion.ts`.
 
 Sin credenciales de Supabase, en desarrollo el route handler cae a
 `.data/mg1-inscripciones.jsonl`; en produccion responde 503 en vez de perder datos.
+
+### Tablas del panel (migraciones `003`-`007`)
+
+| Tabla | Para que |
+|-------|----------|
+| `perfiles` | Un usuario del panel. FK a `auth.users`. Aqui vive el rol. |
+| `mg_artistas` | Roster. `tier` marca/compilado define la ventana de campana. |
+| `mg_proyectos` | Lanzamientos. `release` es la fecha de la que cuelga todo. |
+| `mg_eventos_estado` | Excepciones sobre los eventos derivados. |
+| `mg_eventos_extra` | Eventos creados a mano. |
+| `mg_config` | Fila unica: reglas del motor, capacidad de estudio, huecos de publicacion. |
+| `mg_publicaciones` | Calendario de contenido, con metricas y aprobaciones. |
+| `mg_textos` | Biblioteca de copies y sets de hashtags. |
+| `mg_radar` | Fichas del ecosistema (roster + prospectos) con mediciones. |
+| `mg_bitacora` | Append-only: quien cambio que. Sin policy de UPDATE/DELETE. |
+
+La `003` ademas abre `mg1_inscripciones` a lectura para el staff autenticado:
+la `002` la habia dejado como buzon de solo escritura para el publico, y el
+panel necesita curar esas inscripciones.
 
 ### `registros`
 
