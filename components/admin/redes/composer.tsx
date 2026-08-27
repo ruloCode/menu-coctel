@@ -16,7 +16,7 @@ export function publicacionVacia(fecha = hoy()): Publicacion {
     fecha, hora: HORARIOS_DEFAULT.ig,
     titulo: "", hook: "", copy: "", hashtags: "", cta: "", link: "",
     asset_url: "", asset_name: "", thumb_url: "", version: 1,
-    estado: "idea", responsable: "", notas: "",
+    estado: "idea", responsable_id: null, notas: "",
     variantes: {}, m48: {}, m7: {}, aprobaciones: [],
   }
 }
@@ -250,8 +250,12 @@ export default function Composer({
             <select value={p.estado} disabled={!puedeEditar} onChange={(e) => set("estado", e.target.value as EstadoPost)}>
               {Object.entries(ESTADOS_POST).map(([k, v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
             </select>
-            <input value={p.responsable} disabled={!puedeEditar} style={{ width: 130 }}
-              placeholder="Quién" onChange={(e) => set("responsable", e.target.value)} />
+            <select value={p.responsable_id ?? ""} disabled={!puedeEditar}
+              onChange={(e) => set("responsable_id", e.target.value || null)}
+              aria-label="Responsable de la pieza">
+              <option value="">— sin responsable —</option>
+              {snapshot.equipo.map((m) => <option key={m.id} value={m.id}>{m.nombre || m.email}</option>)}
+            </select>
           </Campo>
           <Campo label="Notas" crece>
             <input value={p.notas} disabled={!puedeEditar} style={{ width: "100%" }}

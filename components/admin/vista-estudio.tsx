@@ -3,16 +3,17 @@
 import { useMemo, useState, useTransition } from "react"
 import { claveSemana, fmt } from "@/lib/mg/fechas"
 import { agendarSesiones, proyectoPorId } from "@/lib/mg/motor"
-import type { Evento, Snapshot } from "@/lib/mg/tipos"
+import type { Evento, Snapshot, Perfil } from "@/lib/mg/tipos"
 import { marcarSesionGrabada } from "@/app/admin/acciones"
 import { Tag, Vacio } from "./ui"
 import ModalEvento from "./modal-evento"
 import QuePaso from "./que-paso"
 
 export default function VistaEstudio({
-  snapshot, puedeEditar,
+  snapshot, yo, puedeEditar,
 }: {
   snapshot: Snapshot
+  yo: Perfil
   puedeEditar: boolean
 }) {
   const [evento, setEvento] = useState<Evento | null>(null)
@@ -120,7 +121,7 @@ export default function VistaEstudio({
       })}
 
       {evento ? (
-        <ModalEvento evento={evento} snapshot={snapshot} puedeEditar={puedeEditar} onClose={() => setEvento(null)} />
+        <ModalEvento evento={evento} snapshot={snapshot} yo={yo} puedeEditar={puedeEditar} onClose={() => setEvento(null)} />
       ) : null}
     </>
   )

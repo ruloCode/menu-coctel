@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { cargarSnapshot, perfilActual } from "@/lib/mg/datos"
 import { todosLosEventos } from "@/lib/mg/motor"
 import { puede } from "@/lib/mg/permisos"
@@ -7,5 +8,6 @@ export const dynamic = "force-dynamic"
 
 export default async function CalendarioPage() {
   const [s, perfil] = await Promise.all([cargarSnapshot(), perfilActual()])
-  return <VistaCalendario snapshot={s} eventos={todosLosEventos(s)} puedeEditar={puede(perfil?.rol, "operar")} />
+  if (!perfil) redirect("/admin/login")
+  return <VistaCalendario snapshot={s} eventos={todosLosEventos(s)} puedeEditar={puede(perfil?.rol, "operar")} yo={perfil} />
 }

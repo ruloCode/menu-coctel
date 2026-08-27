@@ -2,7 +2,7 @@ import "server-only"
 
 import { createClient } from "@/lib/supabase/server"
 import { AJUSTES_DEFAULT, REGLAS_DEFAULT } from "./constantes"
-import type { Perfil, Snapshot } from "./tipos"
+import type { Aviso, Comentario, Perfil, ReporteSalud, Snapshot } from "./tipos"
 
 /** El perfil del usuario autenticado, o null si no hay sesion o esta inactivo. */
 export async function perfilActual(): Promise<Perfil | null> {
@@ -12,7 +12,7 @@ export async function perfilActual(): Promise<Perfil | null> {
 
   const { data } = await supabase
     .from("perfiles")
-    .select("id, email, nombre, rol, activo, avatar_url, artista_id, ultimo_acceso, created_at")
+    .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at")
     .eq("id", user.id)
     .maybeSingle()
 
@@ -28,7 +28,7 @@ export async function perfilActual(): Promise<Perfil | null> {
 export async function cargarSnapshot(): Promise<Snapshot> {
   const supabase = await createClient()
 
-  const [artistas, proyectos, estados, extra, config, publicaciones, radar, textos, bitacora] =
+  const [artistas, proyectos, estados, extra, config, publicaciones, radar, textos, bitacora, equipo, comentarios] =
     await Promise.all([
       supabase.from("mg_artistas").select("*").order("orden"),
       supabase.from("mg_proyectos").select("*").order("release"),
@@ -39,6 +39,10 @@ export async function cargarSnapshot(): Promise<Snapshot> {
       supabase.from("mg_radar").select("*").order("nombre"),
       supabase.from("mg_textos").select("*").order("created_at", { ascending: false }),
       supabase.from("mg_bitacora").select("*").order("created_at", { ascending: false }).limit(200),
+      supabase.from("perfiles")
+        .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at")
+        .eq("activo", true).order("nombre"),
+      supabase.from("mg_comentarios").select("*").order("created_at"),
     ])
 
   const eventosEstado: Snapshot["eventosEstado"] = {}
@@ -48,6 +52,9 @@ export async function cargarSnapshot(): Promise<Snapshot> {
       fecha_override: e.fecha_override,
       hecho: e.hecho,
       eliminado: e.eliminado,
+      responsable_id: e.responsable_id,
+      prioridad: e.prioridad,
+      hecho_at: e.hecho_at,
     }
   }
 
@@ -67,14 +74,37 @@ export async function cargarSnapshot(): Promise<Snapshot> {
     radar: radar.data ?? [],
     textos: textos.data ?? [],
     bitacora: bitacora.data ?? [],
+    equipo: (equipo.data ?? []) as Perfil[],
+    comentarios: (comentarios.data ?? []) as Comentario[],
   }
+}
+
+/** Bandeja de la persona en sesion. Solo devuelve lo suyo: lo garantiza RLS. */
+export async function cargarAvisos(): Promise<Aviso[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("mg_avisos")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(80)
+  return (data ?? []) as Aviso[]
+}
+
+export async function cargarHistorialSalud(): Promise<ReporteSalud[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("mg_salud_historial")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(120)
+  return (data ?? []) as ReporteSalud[]
 }
 
 export async function cargarEquipo(): Promise<Perfil[]> {
   const supabase = await createClient()
   const { data } = await supabase
     .from("perfiles")
-    .select("id, email, nombre, rol, activo, avatar_url, artista_id, ultimo_acceso, created_at")
+    .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at")
     .order("created_at")
   return (data ?? []) as Perfil[]
 }

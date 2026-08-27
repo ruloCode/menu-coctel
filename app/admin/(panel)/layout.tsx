@@ -2,9 +2,10 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import "../panel.css"
 import { createClient } from "@/lib/supabase/server"
-import { cargarSnapshot, perfilActual } from "@/lib/mg/datos"
+import { cargarAvisos, cargarSnapshot, perfilActual } from "@/lib/mg/datos"
 import { cerrarSesion } from "../acciones"
 import PanelShell from "@/components/admin/panel-shell"
+import { misPendientes } from "@/lib/mg/motor"
 
 export const metadata: Metadata = {
   title: "Centro de operaciones · MG Company",
@@ -41,9 +42,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   // Contadores para las píldoras de la navegación: lo que exige atención hoy.
-  const snapshot = await cargarSnapshot()
+  const [snapshot, avisosBandeja] = await Promise.all([cargarSnapshot(), cargarAvisos()])
   const hoyISO = new Date().toISOString().slice(0, 10)
+
+  // Atrasado y de hoy: es lo único que justifica una píldora roja permanente.
+  const mios = misPendientes(snapshot, perfil.id)
+  const urgente = mios.atrasado.length + mios.hoy.length
+
   const avisos: Record<string, number> = {
+    "mi-trabajo": urgente,
+    bandeja: avisosBandeja.filter((a) => !a.leido_at).length,
+    cartera: snapshot.proyectos.filter(
+      (p) => !["lanzado", "pausado"].includes(p.estado) && (p.salud === "en_riesgo" || p.salud === "desviado"),
+    ).length,
     redes: snapshot.publicaciones.filter((p) => p.estado === "revision" || p.estado === "error").length,
     radar: snapshot.radar.filter((r) => r.proxima && r.proxima < hoyISO).length,
   }

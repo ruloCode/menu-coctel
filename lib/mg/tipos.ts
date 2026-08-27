@@ -11,9 +11,17 @@ export interface Perfil {
   activo: boolean
   avatar_url: string | null
   artista_id: string | null
+  /** Bloques de trabajo que aguanta a la semana; base de la vista de carga. */
+  capacidad_semanal: number
   ultimo_acceso: string | null
   created_at: string
 }
+
+export type Prioridad = "baja" | "normal" | "alta" | "urgente"
+
+/** Salud del proyecto. Eje distinto de EstadoProyecto, que describe la
+ *  produccion musical: algo puede estar en mezcla Y en riesgo. */
+export type Salud = "sin_reportar" | "en_curso" | "en_riesgo" | "desviado"
 
 export type Tier = "marca" | "compilado"
 
@@ -41,6 +49,20 @@ export interface Proyecto {
   post_meses: number
   estado: EstadoProyecto
   notas: string
+  lider_id: string | null
+  salud: Salud
+  salud_nota: string
+  salud_at: string | null
+  salud_por: string | null
+}
+
+export interface ReporteSalud {
+  id: number
+  proyecto_id: string
+  salud: Exclude<Salud, "sin_reportar">
+  nota: string
+  autor_nombre: string
+  created_at: string
 }
 
 export type TipoEvento =
@@ -55,6 +77,10 @@ export interface Evento {
   proyecto_id: string | null
   /** Solo en sesiones de grabacion: no cabe antes del deadline. */
   tarde?: boolean
+  /** Anotaciones que vienen de mg_eventos_estado, resueltas por el motor. */
+  responsable_id: string | null
+  prioridad: Prioridad
+  hecho: boolean
 }
 
 export interface EventoEstado {
@@ -62,6 +88,9 @@ export interface EventoEstado {
   fecha_override: string | null
   hecho: boolean
   eliminado: boolean
+  responsable_id: string | null
+  prioridad: Prioridad
+  hecho_at: string | null
 }
 
 export interface EventoExtra {
@@ -145,7 +174,7 @@ export interface Publicacion {
   thumb_url: string
   version: number
   estado: EstadoPost
-  responsable: string
+  responsable_id: string | null
   notas: string
   variantes: Record<string, { copy?: string; hashtags?: string }>
   m48: Metricas
@@ -182,6 +211,34 @@ export interface EntradaBitacora {
   created_at: string
 }
 
+export type EntidadComentable = "evento" | "proyecto" | "publicacion" | "radar"
+
+export interface Comentario {
+  id: string
+  entidad_tipo: EntidadComentable
+  entidad_id: string
+  cuerpo: string
+  menciones: string[]
+  autor: string
+  autor_nombre: string
+  editado_at: string | null
+  created_at: string
+}
+
+export type TipoAviso = "asignacion" | "mencion" | "aprobacion" | "salud" | "sistema"
+
+export interface Aviso {
+  id: string
+  perfil_id: string
+  tipo: TipoAviso
+  titulo: string
+  cuerpo: string
+  enlace: string
+  de_nombre: string
+  leido_at: string | null
+  created_at: string
+}
+
 export interface TextoGuardado {
   id: string
   tipo: "texto" | "tags"
@@ -200,4 +257,7 @@ export interface Snapshot {
   radar: FichaRadar[]
   textos: TextoGuardado[]
   bitacora: EntradaBitacora[]
+  /** El equipo, para poder asignar y dibujar la carga. */
+  equipo: Perfil[]
+  comentarios: Comentario[]
 }

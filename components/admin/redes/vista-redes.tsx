@@ -47,10 +47,11 @@ export default function VistaRedes({
     if (estado !== "todas") l = l.filter((p) => p.estado === estado)
     if (busca) {
       const q = busca.toLowerCase()
-      l = l.filter((p) => `${p.titulo} ${p.hook} ${p.copy} ${p.responsable}`.toLowerCase().includes(q))
+      const nombre = (id: string | null) => snapshot.equipo.find((m) => m.id === id)?.nombre ?? ""
+      l = l.filter((p) => `${p.titulo} ${p.hook} ${p.copy} ${nombre(p.responsable_id)}`.toLowerCase().includes(q))
     }
     return [...l].sort((a, b) => (a.fecha === b.fecha ? a.hora.localeCompare(b.hora) : a.fecha < b.fecha ? -1 : 1))
-  }, [snapshot.publicaciones, cuenta, plat, estado, busca])
+  }, [snapshot.publicaciones, snapshot.equipo, cuenta, plat, estado, busca])
 
   const abrirNueva = (fecha?: string) => setEditando(publicacionVacia(fecha ?? t))
 

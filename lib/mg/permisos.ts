@@ -36,9 +36,15 @@ export const puede = (rol: RolApp | null | undefined, permiso: Permiso): boolean
 export const etiquetaRol = (rol: RolApp): string =>
   ROLES.find((r) => r.valor === rol)?.label ?? rol
 
-/** Secciones del panel visibles para cada rol. */
+/** Secciones del panel visibles para cada rol.
+ *  El primer grupo es personal: lo que le toca a quien abrió el panel. Va
+ *  arriba a propósito — es la razón por la que alguien vuelve mañana. */
 export const SECCIONES = [
+  { slug: "mi-trabajo",  label: "Mi trabajo",          icon: "◆", color: "var(--brand)",           grupo: "Lo mío" },
+  { slug: "bandeja",     label: "Bandeja",             icon: "◉", color: "var(--c-sesion)",        grupo: "Lo mío" },
   { slug: "",            label: "Resumen",             icon: "◍", color: "var(--ink)",             grupo: "Operación" },
+  { slug: "cartera",     label: "Cartera y salud",     icon: "▣", color: "var(--good)",            grupo: "Operación" },
+  { slug: "carga",       label: "Carga del equipo",    icon: "▥", color: "var(--c-content)",       grupo: "Operación" },
   { slug: "calendario",  label: "Calendario",          icon: "▦", color: "var(--c-release)",       grupo: "Operación" },
   { slug: "timeline",    label: "Timeline",            icon: "▤", color: "var(--c-pre)",           grupo: "Operación" },
   { slug: "estudio",     label: "Estudio",             icon: "◉", color: "var(--c-sesion)",        grupo: "Operación" },

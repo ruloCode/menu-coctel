@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react"
 import { D, DIAS, MESES, fmt, fmtLargo, hoy, iso } from "@/lib/mg/fechas"
 import { TIPOS_EVENTO } from "@/lib/mg/constantes"
-import type { Evento, Snapshot, TipoEvento } from "@/lib/mg/tipos"
+import type { Evento, Snapshot, TipoEvento, Perfil } from "@/lib/mg/tipos"
 import { crearEventoManual } from "@/app/admin/acciones"
 import { Campo, Leyenda, Modal, Tag } from "./ui"
 import ModalEvento from "./modal-evento"
@@ -13,10 +13,11 @@ const TIPOS_VISIBLES: TipoEvento[] = [
 ]
 
 export default function VistaCalendario({
-  snapshot, eventos, puedeEditar,
+  snapshot, eventos, yo, puedeEditar,
 }: {
   snapshot: Snapshot
   eventos: Evento[]
+  yo: Perfil
   puedeEditar: boolean
 }) {
   const ahora = new Date()
@@ -134,6 +135,7 @@ export default function VistaCalendario({
         <ModalEvento
           evento={evento}
           snapshot={snapshot}
+          yo={yo}
           puedeEditar={puedeEditar}
           onClose={() => setEvento(null)}
         />

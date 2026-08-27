@@ -3,15 +3,16 @@
 import { useMemo, useState } from "react"
 import { D, MESES, fmt, hoy, masDias } from "@/lib/mg/fechas"
 import { eventosProyecto, artistaPorId } from "@/lib/mg/motor"
-import type { Evento, Snapshot } from "@/lib/mg/tipos"
+import type { Evento, Snapshot, Perfil } from "@/lib/mg/tipos"
 import { Leyenda, Vacio } from "./ui"
 import ModalEvento from "./modal-evento"
 import QuePaso from "./que-paso"
 
 export default function VistaTimeline({
-  snapshot, puedeEditar,
+  snapshot, yo, puedeEditar,
 }: {
   snapshot: Snapshot
+  yo: Perfil
   puedeEditar: boolean
 }) {
   const [evento, setEvento] = useState<Evento | null>(null)
@@ -128,7 +129,7 @@ export default function VistaTimeline({
       )}
 
       {evento ? (
-        <ModalEvento evento={evento} snapshot={snapshot} puedeEditar={puedeEditar} onClose={() => setEvento(null)} />
+        <ModalEvento evento={evento} snapshot={snapshot} yo={yo} puedeEditar={puedeEditar} onClose={() => setEvento(null)} />
       ) : null}
     </>
   )

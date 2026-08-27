@@ -756,3 +756,261 @@ export async function cambiarPassword(actual: string, nueva: string): Promise<Re
   refrescar()
   return OK
 }
+
+/* ============================================================
+   Personas dentro del trabajo
+   ============================================================ */
+
+/** Crea avisos en la bandeja de otras personas. Nunca para uno mismo: nadie
+ *  necesita que le notifiquen lo que acaba de hacer. */
+async function avisar(
+  destinatarios: string[],
+  aviso: { tipo: string; titulo: string; cuerpo?: string; enlace?: string },
+) {
+  const perfil = await perfilActual()
+  const gente = [...new Set(destinatarios)].filter((id) => id && id !== perfil?.id)
+  if (!gente.length) return
+
+  const supabase = await createClient()
+  await supabase.from("mg_avisos").insert(
+    gente.map((perfil_id) => ({
+      perfil_id,
+      tipo: aviso.tipo,
+      titulo: aviso.titulo,
+      cuerpo: aviso.cuerpo ?? "",
+      enlace: aviso.enlace ?? "/admin/mi-trabajo",
+      de: perfil?.id ?? null,
+      de_nombre: perfil?.nombre ?? "",
+    })),
+  )
+}
+
+/** Asignar un evento derivado. La asignación es una anotación más sobre el
+ *  evento, así que vive en mg_eventos_estado junto a la fecha movida. */
+export async function asignarEvento(eventoId: string, responsableId: string | null, etiqueta: string) {
+  return mutar("operar", async () => {
+    // Las publicaciones llevan su responsable en su propia fila.
+    if (eventoId.startsWith("post:")) {
+      const supabase = await createClient()
+      const { error } = await supabase
+        .from("mg_publicaciones")
+        .update({ responsable_id: responsableId })
+        .eq("id", eventoId.slice(5))
+      if (error) throw new Error(error.message)
+    } else {
+      await upsertEstado(eventoId, { responsable_id: responsableId })
+    }
+
+    if (responsableId) {
+      await avisar([responsableId], {
+        tipo: "asignacion",
+        titulo: `Te asignaron: ${etiqueta}`,
+        cuerpo: "Aparece en Mi trabajo.",
+      })
+    }
+
+    const supabase = await createClient()
+    const { data } = await supabase.from("perfiles").select("nombre").eq("id", responsableId ?? "").maybeSingle()
+    return responsableId
+      ? `👤 “${etiqueta}” asignado a ${data?.nombre ?? "alguien"}.`
+      : `👤 “${etiqueta}” quedó sin responsable.`
+  })
+}
+
+export async function cambiarPrioridad(eventoId: string, prioridad: string) {
+  return mutar("operar", async () => {
+    await upsertEstado(eventoId, { prioridad })
+    return null // cambiar prioridad no merece una línea de bitácora
+  })
+}
+
+/**
+ * Cerrar un evento. A diferencia de marcarEvento(), esta la puede usar
+ * cualquiera sobre lo que es SUYO: es lo que hace que "Mi trabajo" sirva a un
+ * editor de contenido y no solo a un manager. RLS impone el límite real.
+ */
+export async function cerrarMiPendiente(eventoId: string, hecho: boolean): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from("mg_eventos_estado")
+      .update({ hecho })
+      .eq("evento_id", eventoId)
+      .select("evento_id")
+
+    if (error) throw new Error(error.message)
+    if (!data?.length) {
+      return { ok: false, error: "Solo puedes cerrar lo que está asignado a ti." }
+    }
+    refrescar()
+    return OK
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Error inesperado" }
+  }
+}
+
+/* ============================================================
+   Salud del proyecto
+   ============================================================ */
+
+export async function reportarSalud(proyectoId: string, salud: string, nota: string) {
+  return mutar("operar", async () => {
+    const perfil = await perfilActual()
+    const supabase = await createClient()
+
+    const { data: p } = await supabase
+      .from("mg_proyectos").select("titulo, lider_id, mg_artistas(nombre)").eq("id", proyectoId).single()
+    if (!p) throw new Error("Proyecto no encontrado")
+
+    const { error } = await supabase
+      .from("mg_proyectos")
+      .update({ salud, salud_nota: nota, salud_at: new Date().toISOString(), salud_por: perfil?.id ?? null })
+      .eq("id", proyectoId)
+    if (error) throw new Error(error.message)
+
+    // El historial es lo que permite decir "iba en curso hace tres semanas".
+    await supabase.from("mg_salud_historial").insert({
+      proyecto_id: proyectoId, salud, nota,
+      autor: perfil?.id ?? null, autor_nombre: perfil?.nombre ?? "",
+    })
+
+    const nombre = (p.mg_artistas as unknown as { nombre: string } | null)?.nombre ?? "?"
+
+    // Un proyecto que se sale de cauce le importa a owners y admins, y sobre
+    // todo a quien lo lidera: puede no ser ninguno de los dos.
+    if (salud === "desviado" || salud === "en_riesgo") {
+      const { data: jefes } = await supabase
+        .from("perfiles").select("id").in("rol", ["owner", "admin"]).eq("activo", true)
+      const destinatarios = [...(jefes ?? []).map((j) => j.id), ...(p.lider_id ? [p.lider_id] : [])]
+      await avisar(destinatarios, {
+        tipo: "salud",
+        titulo: `${nombre} · ${p.titulo}: ${salud === "desviado" ? "desviado" : "en riesgo"}`,
+        cuerpo: nota,
+        enlace: "/admin/cartera",
+      })
+    }
+
+    const etiqueta = { en_curso: "en curso", en_riesgo: "en riesgo", desviado: "desviado" }[salud] ?? salud
+    return `🚦 ${nombre} · ${p.titulo}: ${etiqueta}${nota ? ` — ${nota}` : ""}.`
+  })
+}
+
+export async function asignarLider(proyectoId: string, liderId: string | null) {
+  return mutar("operar", async () => {
+    const supabase = await createClient()
+    const { data: p } = await supabase
+      .from("mg_proyectos").select("titulo, mg_artistas(nombre)").eq("id", proyectoId).single()
+    const { error } = await supabase.from("mg_proyectos").update({ lider_id: liderId }).eq("id", proyectoId)
+    if (error) throw new Error(error.message)
+
+    const nombre = (p?.mg_artistas as unknown as { nombre: string } | null)?.nombre ?? "?"
+    if (liderId) {
+      await avisar([liderId], {
+        tipo: "asignacion",
+        titulo: `Eres responsable de ${nombre} · ${p?.titulo}`,
+        cuerpo: "Te toca reportar su salud cada semana.",
+        enlace: "/admin/cartera",
+      })
+    }
+    return `🎯 Responsable de ${nombre} · ${p?.titulo} actualizado.`
+  })
+}
+
+export async function guardarCapacidad(perfilId: string, capacidad: number) {
+  return mutar("equipo", async () => {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from("perfiles").update({ capacidad_semanal: capacidad }).eq("id", perfilId)
+    if (error) throw new Error(error.message)
+    return null
+  })
+}
+
+/* ============================================================
+   Comentarios
+   ============================================================ */
+
+export async function comentar(
+  entidadTipo: string,
+  entidadId: string,
+  cuerpo: string,
+  contexto: { titulo: string; enlace: string },
+): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+  if (perfil.rol === "viewer") return { ok: false, error: "Tu rol es de solo lectura." }
+  if (!cuerpo.trim()) return { ok: false, error: "Escribe algo antes de enviar." }
+
+  try {
+    const supabase = await createClient()
+
+    // Menciones por @nombre. Se resuelven contra el equipo activo para no
+    // guardar ids inventados desde el cliente.
+    const { data: equipo } = await supabase
+      .from("perfiles").select("id, nombre").eq("activo", true)
+    const menciones = (equipo ?? [])
+      .filter((m) => m.nombre && cuerpo.toLowerCase().includes(`@${m.nombre.toLowerCase()}`))
+      .map((m) => m.id)
+
+    const { error } = await supabase.from("mg_comentarios").insert({
+      entidad_tipo: entidadTipo,
+      entidad_id: entidadId,
+      cuerpo: cuerpo.trim(),
+      menciones,
+      autor: perfil.id,
+      autor_nombre: perfil.nombre,
+    })
+    if (error) throw new Error(error.message)
+
+    if (menciones.length) {
+      await avisar(menciones, {
+        tipo: "mencion",
+        titulo: `${perfil.nombre} te mencionó en ${contexto.titulo}`,
+        cuerpo: cuerpo.trim().slice(0, 140),
+        enlace: contexto.enlace,
+      })
+    }
+
+    refrescar()
+    return OK
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Error inesperado" }
+  }
+}
+
+export async function borrarComentario(id: string): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+  const supabase = await createClient()
+  const { error } = await supabase.from("mg_comentarios").delete().eq("id", id)
+  if (error) return { ok: false, error: error.message }
+  refrescar()
+  return OK
+}
+
+/* ============================================================
+   Bandeja
+   ============================================================ */
+
+export async function marcarAvisoLeido(id: string): Promise<Resultado> {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("mg_avisos").update({ leido_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { ok: false, error: error.message }
+  refrescar()
+  return OK
+}
+
+export async function marcarTodoLeido(): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("mg_avisos").update({ leido_at: new Date().toISOString() }).is("leido_at", null)
+  if (error) return { ok: false, error: error.message }
+  refrescar()
+  return OK
+}

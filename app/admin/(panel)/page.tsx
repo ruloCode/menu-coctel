@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { cargarSnapshot, perfilActual } from "@/lib/mg/datos"
-import { calcularAlertas, todosLosEventos, eventoHecho, artistaPorId } from "@/lib/mg/motor"
+import { calcularAlertas, todosLosEventos, eventoHecho, artistaPorId, misPendientes, SALUD, saludVencida } from "@/lib/mg/motor"
 import { fmt, hoy, masDias, diasEntre } from "@/lib/mg/fechas"
 import { TIPOS_EVENTO, ESTADOS } from "@/lib/mg/constantes"
 import { puede } from "@/lib/mg/permisos"
@@ -23,6 +23,10 @@ export default async function ResumenPage() {
     .sort((a, b) => (a.release < b.release ? -1 : 1))[0]
   const alertas = calcularAlertas(s)
   const enRevision = s.publicaciones.filter((p) => p.estado === "revision").length
+  const mios = perfil ? misPendientes(s, perfil.id) : null
+  const urgente = mios ? mios.atrasado.length + mios.hoy.length : 0
+  const enRiesgo = activos.filter((p) => p.salud === "en_riesgo" || p.salud === "desviado")
+  const sinReporte = activos.filter((p) => saludVencida(p))
 
   return (
     <>
@@ -37,6 +41,20 @@ export default async function ResumenPage() {
         ) : null}
       </div>
 
+      {mios && urgente > 0 ? (
+        <div className="banner" style={{ borderColor: mios.atrasado.length ? "var(--critical)" : "var(--baseline)" }}>
+          <span aria-hidden>{mios.atrasado.length ? "🔴" : "📌"}</span>
+          <b style={mios.atrasado.length ? { background: "var(--critical)" } : undefined}>{urgente}</b>
+          <span>
+            {mios.atrasado.length
+              ? `${mios.atrasado.length} cosa(s) tuyas están atrasadas`
+              : `Tienes ${urgente} cosa(s) para hoy`}
+            {mios.atrasado.length && mios.hoy.length ? ` y ${mios.hoy.length} vence(n) hoy` : ""}.
+          </span>
+          <Link className="btn sm" href="/admin/mi-trabajo" style={{ marginLeft: "auto" }}>Ver mi trabajo</Link>
+        </div>
+      ) : null}
+
       <div className="kpis">
         <Kpi valor={activos.length} label="Proyectos activos" />
         <Kpi valor={cancionesFaltantes} label="Canciones por grabar" ayuda={`en ${activos.length} proyectos`} />
@@ -48,8 +66,31 @@ export default async function ResumenPage() {
             ? `${artistaPorId(s, siguienteRelease.artista_id)?.nombre} · ${fmt(siguienteRelease.release)}`
             : "sin releases futuros"}
         />
+        <Kpi valor={enRiesgo.length} label="Proyectos en riesgo" ayuda={sinReporte.length ? `${sinReporte.length} sin reporte fresco` : "reportes al día"} />
         <Kpi valor={enRevision} label="Piezas esperando aprobación" />
       </div>
+
+      {enRiesgo.length ? (
+        <div className="card">
+          <h2>🚦 Salud de la cartera</h2>
+          <div className="tabla-wrap">
+            <table>
+              <thead><tr><th>Proyecto</th><th>Salud</th><th>Qué pasó</th><th>Release</th></tr></thead>
+              <tbody>
+                {enRiesgo.map((p) => (
+                  <tr key={p.id}>
+                    <td>{artistaPorId(s, p.artista_id)?.nombre} · {p.titulo}</td>
+                    <td><Tag color={SALUD[p.salud].color}>{SALUD[p.salud].label}</Tag></td>
+                    <td className="small">{p.salud_nota || <span className="muted">sin nota</span>}</td>
+                    <td className="mono small" style={{ whiteSpace: "nowrap" }}>{fmt(p.release)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Link className="btn sm" href="/admin/cartera" style={{ marginTop: 10 }}>Ver la cartera completa</Link>
+        </div>
+      ) : null}
 
       {alertas.length ? (
         <div className="card">

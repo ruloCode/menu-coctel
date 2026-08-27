@@ -1,4 +1,4 @@
-import type { Evento, Proyecto, Snapshot, Artista } from "./tipos"
+import type { Evento, Proyecto, Snapshot, Artista, Perfil, Prioridad } from "./tipos"
 import { MESES, claveSemana, evitarFestivos, fmt, hoy, masDias, ultimoSabado, D } from "./fechas"
 import { PLATS } from "./constantes"
 
@@ -35,6 +35,18 @@ export function cuentas(s: Snapshot): Cuenta[] {
   ]
 }
 
+/** Resuelve lo que se guardo sobre un evento derivado: de quien es, con que
+ *  prioridad y si ya se cerro. Vive en mg_eventos_estado junto a las demas
+ *  excepciones (fecha movida, cancelado). */
+function anotaciones(s: Snapshot, id: string): Pick<Evento, "responsable_id" | "prioridad" | "hecho"> {
+  const st = s.eventosEstado[id]
+  return {
+    responsable_id: st?.responsable_id ?? null,
+    prioridad: (st?.prioridad ?? "normal") as Prioridad,
+    hecho: !!st?.hecho,
+  }
+}
+
 /* ---------- hitos derivados de un proyecto ---------- */
 export function eventosProyecto(s: Snapshot, p: Proyecto): Evento[] {
   const R = s.config.reglas
@@ -46,7 +58,10 @@ export function eventosProyecto(s: Snapshot, p: Proyecto): Evento[] {
     const id = `${p.id}:${key}`
     const st = s.eventosEstado[id]
     if (st?.eliminado) return
-    evs.push({ id, proyecto_id: p.id, tipo, fecha: st?.fecha_override ?? fecha, etiqueta })
+    evs.push({
+      id, proyecto_id: p.id, tipo, fecha: st?.fecha_override ?? fecha, etiqueta,
+      ...anotaciones(s, id),
+    })
   }
 
   if (p.estado === "pausado") return evs
@@ -118,6 +133,7 @@ export function agendarSesiones(s: Snapshot): Evento[] {
               fecha: st?.fecha_override ?? d,
               etiqueta: `🎙 Sesión ${item.i}/${item.p.tracks - item.p.grabados} · ${artistaPorId(s, item.p.artista_id)?.nombre ?? "?"}`,
               tarde: d > item.deadline,
+              ...anotaciones(s, id),
             })
           }
           cargaDia[d] = (cargaDia[d] ?? 0) + 1
@@ -160,6 +176,7 @@ export function eventosFiestas(s: Snapshot): Evento[] {
       fecha: st?.fecha_override ?? ultimoSabado(y, m),
       proyecto_id: null,
       etiqueta: `🎉 Fiesta MG · Noche ${MESES[m]}${head ? " · Headliner: " + head : ""}`,
+      ...anotaciones(s, id),
     })
   }
   return evs
@@ -179,6 +196,7 @@ export function eventosRadar(s: Snapshot): Evento[] {
       fecha: st?.fecha_override ?? e.proxima,
       proyecto_id: null,
       etiqueta: `📊 Medir redes · ${e.nombre}`,
+      ...anotaciones(s, id),
     })
   })
   return evs
@@ -196,6 +214,10 @@ export function eventosPublicaciones(s: Snapshot): Evento[] {
         fecha: st?.fecha_override ?? p.fecha,
         proyecto_id: p.proyecto_id,
         etiqueta: `${PLATS[p.plataforma].icon} ${p.hora} · ${nombreCuenta(s, p.cuenta)} — ${p.titulo || p.formato}`,
+        // La publicacion lleva su propio responsable; la anotacion del evento
+        // solo aporta prioridad y cierre.
+        ...anotaciones(s, `post:${p.id}`),
+        responsable_id: p.responsable_id,
       }
     })
 }
@@ -217,6 +239,7 @@ export function todosLosEventos(s: Snapshot): Evento[] {
       fecha: s.eventosEstado[e.id]?.fecha_override ?? e.fecha,
       etiqueta: e.etiqueta,
       proyecto_id: e.proyecto_id,
+      ...anotaciones(s, e.id),
     })),
   )
   evs.sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0))
@@ -308,4 +331,125 @@ export function cargaSemanal(s: Snapshot) {
     porSemana[wk] = (porSemana[wk] ?? 0) + 1
   })
   return porSemana
+}
+
+/* ============================================================
+   Mi trabajo
+   ============================================================ */
+
+export type Cubeta = "atrasado" | "hoy" | "semana" | "despues"
+
+export const CUBETAS: { clave: Cubeta; label: string; ayuda: string }[] = [
+  { clave: "atrasado", label: "Atrasado",     ayuda: "Venció y sigue abierto" },
+  { clave: "hoy",      label: "Hoy",          ayuda: "Vence hoy" },
+  { clave: "semana",   label: "Esta semana",  ayuda: "Próximos 7 días" },
+  { clave: "despues",  label: "Después",      ayuda: "Más de 7 días" },
+]
+
+const PESO_PRIORIDAD: Record<string, number> = { urgente: 0, alta: 1, normal: 2, baja: 3 }
+
+/** Clasifica un evento contra la fecha de hoy. */
+export function cubetaDe(fecha: string, t = hoy()): Cubeta {
+  if (fecha < t) return "atrasado"
+  if (fecha === t) return "hoy"
+  return fecha <= masDias(t, 7) ? "semana" : "despues"
+}
+
+/**
+ * El trabajo abierto de una persona, agrupado como lo espera quien abre el
+ * panel un lunes. Lo cerrado no aparece: "Mi trabajo" es una lista de
+ * pendientes, no un historial.
+ */
+export function misPendientes(s: Snapshot, perfilId: string, horizonteDias = 60) {
+  const t = hoy()
+  const limite = masDias(t, horizonteDias)
+
+  const mios = todosLosEventos(s)
+    .filter((e) => e.responsable_id === perfilId && !e.hecho && e.fecha <= limite)
+    .sort((a, b) => {
+      if (a.fecha !== b.fecha) return a.fecha < b.fecha ? -1 : 1
+      return (PESO_PRIORIDAD[a.prioridad] ?? 2) - (PESO_PRIORIDAD[b.prioridad] ?? 2)
+    })
+
+  const grupos: Record<Cubeta, Evento[]> = { atrasado: [], hoy: [], semana: [], despues: [] }
+  mios.forEach((e) => grupos[cubetaDe(e.fecha, t)].push(e))
+  return grupos
+}
+
+/** Lo mismo pero sin dueño: es la lista que un PM tiene que repartir. */
+export function sinResponsable(s: Snapshot, horizonteDias = 30): Evento[] {
+  const t = hoy()
+  const limite = masDias(t, horizonteDias)
+  return todosLosEventos(s)
+    .filter((e) => !e.responsable_id && !e.hecho && e.fecha >= t && e.fecha <= limite)
+    // Las publicaciones sin responsable son ruido en esta lista: se reparten
+    // desde el módulo de Redes, que tiene su propio flujo.
+    .filter((e) => e.tipo !== "publicacion" || true)
+}
+
+/* ============================================================
+   Carga del equipo
+   ============================================================ */
+
+export interface CargaPersona {
+  perfil: Perfil
+  /** clave de semana (lunes) -> nº de eventos asignados abiertos */
+  semanas: Record<string, number>
+  total: number
+  /** Semanas por encima de su capacidad declarada. */
+  semanasExcedidas: number
+}
+
+/**
+ * Cuántos compromisos tiene cada persona por semana frente a su capacidad.
+ * Sirve para mover trabajo ANTES de que el release se caiga, que es la
+ * diferencia entre prevenir un atraso y reportarlo.
+ */
+export function cargaPorPersona(s: Snapshot, semanas = 8): { lunes: string[]; filas: CargaPersona[] } {
+  const inicio = claveSemana(hoy())
+  const lunes = Array.from({ length: semanas }, (_, i) => masDias(inicio, i * 7))
+  const ventana = new Set(lunes)
+
+  const eventos = todosLosEventos(s).filter((e) => e.responsable_id && !e.hecho)
+
+  const filas = s.equipo.map((perfil) => {
+    const conteo: Record<string, number> = {}
+    let total = 0
+    eventos
+      .filter((e) => e.responsable_id === perfil.id)
+      .forEach((e) => {
+        const wk = claveSemana(e.fecha)
+        if (!ventana.has(wk)) return
+        conteo[wk] = (conteo[wk] ?? 0) + 1
+        total++
+      })
+    const semanasExcedidas = lunes.filter((wk) => (conteo[wk] ?? 0) > perfil.capacidad_semanal).length
+    return { perfil, semanas: conteo, total, semanasExcedidas }
+  })
+
+  // Quien más cargado está, arriba: es a quien hay que mirar primero.
+  filas.sort((a, b) => b.total - a.total)
+  return { lunes, filas }
+}
+
+/* ============================================================
+   Salud de la cartera
+   ============================================================ */
+
+export const SALUD: Record<string, { label: string; color: string; orden: number }> = {
+  desviado:      { label: "Desviado",      color: "var(--critical)", orden: 0 },
+  en_riesgo:     { label: "En riesgo",     color: "var(--warning)",  orden: 1 },
+  sin_reportar:  { label: "Sin reportar",  color: "var(--muted)",    orden: 2 },
+  en_curso:      { label: "En curso",      color: "var(--good)",     orden: 3 },
+}
+
+/** Un reporte de salud caduca: a los 10 días deja de ser información. */
+export function saludVencida(p: Proyecto, dias = 10): boolean {
+  if (p.salud === "sin_reportar") return true
+  if (!p.salud_at) return true
+  return p.salud_at.slice(0, 10) < masDias(hoy(), -dias)
+}
+
+export function comentariosDe(s: Snapshot, tipo: string, id: string) {
+  return s.comentarios.filter((c) => c.entidad_tipo === tipo && c.entidad_id === id)
 }

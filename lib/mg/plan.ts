@@ -85,7 +85,7 @@ export function generarPlan(s: Snapshot, proyectoId: string): Publicacion[] {
       asset_url: "", asset_name: "", thumb_url: "",
       version: 1,
       estado: "idea",
-      responsable: "", notas: "",
+      responsable_id: null, notas: "",
       variantes: {}, m48: {}, m7: {}, aprobaciones: [],
     })
   })

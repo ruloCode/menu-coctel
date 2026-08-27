@@ -3,11 +3,17 @@
 import { useState } from "react"
 import { fmt, hoy } from "@/lib/mg/fechas"
 import { eventosFiestas } from "@/lib/mg/motor"
-import type { Evento, Snapshot } from "@/lib/mg/tipos"
+import type { Evento, Snapshot, Perfil } from "@/lib/mg/tipos"
 import { Tag } from "./ui"
 import ModalEvento from "./modal-evento"
 
-export default function VistaFiestas({ snapshot, puedeEditar }: { snapshot: Snapshot; puedeEditar: boolean }) {
+export default function VistaFiestas({
+  snapshot, yo, puedeEditar,
+}: {
+  snapshot: Snapshot
+  yo: Perfil
+  puedeEditar: boolean
+}) {
   const [evento, setEvento] = useState<Evento | null>(null)
   const fiestas = eventosFiestas(snapshot)
   const t = hoy()
@@ -67,7 +73,7 @@ export default function VistaFiestas({ snapshot, puedeEditar }: { snapshot: Snap
       </div>
 
       {evento ? (
-        <ModalEvento evento={evento} snapshot={snapshot} puedeEditar={puedeEditar} onClose={() => setEvento(null)} />
+        <ModalEvento evento={evento} snapshot={snapshot} yo={yo} puedeEditar={puedeEditar} onClose={() => setEvento(null)} />
       ) : null}
     </>
   )
