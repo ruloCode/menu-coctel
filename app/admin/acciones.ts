@@ -1014,3 +1014,66 @@ export async function marcarTodoLeido(): Promise<Resultado> {
   refrescar()
   return OK
 }
+
+/* ============================================================
+   Reuniones
+   ============================================================ */
+
+/** Un acuerdo de junta es un evento como cualquier otro: así cae solo en Mi
+ *  trabajo, el Calendario y la Carga sin código de sincronización. */
+export async function crearAcuerdo(datos: {
+  reunionId: string
+  etiqueta: string
+  fecha: string
+  tipo?: string
+  responsableId?: string | null
+}) {
+  return mutar("operar", async () => {
+    const supabase = await createClient()
+    const perfil = await perfilActual()
+    const id = `ac${Date.now().toString(36)}`
+
+    const { error } = await supabase.from("mg_eventos_extra").insert({
+      id,
+      tipo: datos.tipo ?? "hito",
+      fecha: datos.fecha,
+      etiqueta: datos.etiqueta,
+      reunion_id: datos.reunionId,
+      creado_por: perfil?.id ?? null,
+    })
+    if (error) throw new Error(error.message)
+
+    if (datos.responsableId) {
+      await upsertEstado(id, { responsable_id: datos.responsableId })
+      await avisar([datos.responsableId], {
+        tipo: "asignacion",
+        titulo: `Te asignaron: ${datos.etiqueta}`,
+        cuerpo: "Salió de una reunión.",
+      })
+    }
+    return `📋 Acuerdo nuevo: “${datos.etiqueta}” para ${fmt(datos.fecha)}.`
+  })
+}
+
+export async function guardarReunion(id: string, campos: Record<string, unknown>) {
+  return mutar("operar", async () => {
+    const supabase = await createClient()
+    const { error } = await supabase.from("mg_reuniones").update(campos).eq("id", id)
+    if (error) throw new Error(error.message)
+    return null
+  })
+}
+
+export async function crearReunion(datos: { titulo: string; fecha: string; duracion_min: number | null }) {
+  return mutar("operar", async () => {
+    const supabase = await createClient()
+    const perfil = await perfilActual()
+    const id = `r-${datos.fecha}-${Date.now().toString(36).slice(-4)}`
+    const { error } = await supabase.from("mg_reuniones").insert({
+      id, titulo: datos.titulo, fecha: datos.fecha,
+      duracion_min: datos.duracion_min, creado_por: perfil?.id ?? null,
+    })
+    if (error) throw new Error(error.message)
+    return `📋 Nueva reunión registrada: ${datos.titulo}.`
+  })
+}

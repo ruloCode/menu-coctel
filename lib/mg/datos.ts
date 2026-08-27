@@ -2,7 +2,7 @@ import "server-only"
 
 import { createClient } from "@/lib/supabase/server"
 import { AJUSTES_DEFAULT, REGLAS_DEFAULT } from "./constantes"
-import type { Aviso, Comentario, Perfil, ReporteSalud, Snapshot } from "./tipos"
+import type { Aviso, Comentario, Perfil, ReporteSalud, Reunion, Snapshot } from "./tipos"
 
 /** El perfil del usuario autenticado, o null si no hay sesion o esta inactivo. */
 export async function perfilActual(): Promise<Perfil | null> {
@@ -88,6 +88,18 @@ export async function cargarAvisos(): Promise<Aviso[]> {
     .order("created_at", { ascending: false })
     .limit(80)
   return (data ?? []) as Aviso[]
+}
+
+export async function cargarReuniones(): Promise<Reunion[]> {
+  const supabase = await createClient()
+  const { data } = await supabase.from("mg_reuniones").select("*").order("fecha", { ascending: false })
+  return (data ?? []) as Reunion[]
+}
+
+export async function cargarReunion(id: string): Promise<Reunion | null> {
+  const supabase = await createClient()
+  const { data } = await supabase.from("mg_reuniones").select("*").eq("id", id).maybeSingle()
+  return (data as Reunion) ?? null
 }
 
 export async function cargarHistorialSalud(): Promise<ReporteSalud[]> {

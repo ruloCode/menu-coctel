@@ -93,12 +93,28 @@ export interface EventoEstado {
   hecho_at: string | null
 }
 
+export interface Reunion {
+  id: string
+  titulo: string
+  fecha: string
+  duracion_min: number | null
+  resumen: string
+  decisiones: { texto: string; detalle?: string }[]
+  riesgos: { texto: string; nivel: "alto" | "medio" | "bajo" }[]
+  pendientes: { texto: string }[]
+  participantes: string[]
+  transcripcion: string
+  created_at: string
+}
+
 export interface EventoExtra {
   id: string
   tipo: TipoEvento
   fecha: string
   etiqueta: string
   proyecto_id: string | null
+  /** De qué junta salió este compromiso, si salió de alguna. */
+  reunion_id: string | null
 }
 
 export interface Reglas {
@@ -211,7 +227,7 @@ export interface EntradaBitacora {
   created_at: string
 }
 
-export type EntidadComentable = "evento" | "proyecto" | "publicacion" | "radar"
+export type EntidadComentable = "evento" | "proyecto" | "publicacion" | "radar" | "reunion"
 
 export interface Comentario {
   id: string
