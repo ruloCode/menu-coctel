@@ -119,7 +119,11 @@ middleware.ts                     # Auth middleware for /admin routes
 | `/mg1/convocatoria` | Landing publica del Concurso MG1 + formulario de inscripcion (persiste en Supabase) |
 | `/mg1/jurado/[invitado]` | Invitacion privada de jurado, parametrizada por slug |
 | `/admin/login` | Acceso al panel (entrar / crear cuenta) |
+| `/admin/mi-trabajo` | Lo asignado a ti: atrasado / hoy / esta semana / despues |
+| `/admin/bandeja` | Avisos: asignaciones, menciones, proyectos en riesgo |
 | `/admin` | Panel · Resumen: KPIs, alertas y proximos eventos |
+| `/admin/cartera` | Semaforo de salud por proyecto + historial de reportes |
+| `/admin/carga` | Compromisos por persona y semana contra su capacidad |
 | `/admin/calendario` | Calendario mensual de todos los eventos derivados |
 | `/admin/timeline` | Gantt de campanas (pre / release / post) |
 | `/admin/estudio` | Sesiones de grabacion agendadas por capacidad |
@@ -150,8 +154,19 @@ todo el proyecto en cascada.
 
 Lo unico que se **persiste** del calendario son las excepciones:
 
-- `mg_eventos_estado` — fecha movida a mano, hito marcado como hecho, evento cancelado
+- `mg_eventos_estado` — fecha movida a mano, hito hecho, evento cancelado,
+  **responsable y prioridad**
 - `mg_eventos_extra` — eventos creados a mano
+
+Corolario: como `mg_eventos_extra` permite crear eventos a mano y
+`mg_eventos_estado` les pone responsable, **el modelo de eventos ES el modelo de
+tareas**. No hay ni debe haber una entidad `tarea` aparte.
+
+### Dos ejes que se confunden facil
+
+`mg_proyectos.estado` describe la **produccion musical** (mezcla, seleccion de
+masters). `mg_proyectos.salud` describe si **llega a la fecha** (`en_curso`,
+`en_riesgo`, `desviado`). Un proyecto puede estar en mezcla Y desviado.
 
 Por eso los ids son TEXT y no uuid: el motor compone ids derivados
 (`p3:release`, `p3:ses2`, `party:2026-11`, `post:xxx`) y las excepciones apuntan
@@ -198,6 +213,9 @@ Alta de usuarios: cada quien crea su cuenta en `/admin/login`. El trigger
 `handle_new_user` deja al **primer** usuario como `owner` activo y a todos los
 demas como `viewer` inactivo, a la espera de que un admin los habilite. Nadie
 consigue acceso solo por registrarse.
+
+Para el detalle completo del dominio, las invariantes y el siguiente tramo de
+trabajo, ver **`docs/SUPER-PROMPT.md`**.
 
 Barandas en `perfiles` (triggers `proteger_perfil` y `exigir_un_owner`):
 nadie cambia su propio rol, estado ni artista vinculado; solo el owner toca al
@@ -246,6 +264,9 @@ Sin credenciales de Supabase, en desarrollo el route handler cae a
 | `mg_publicaciones` | Calendario de contenido, con metricas y aprobaciones. |
 | `mg_textos` | Biblioteca de copies y sets de hashtags. |
 | `mg_radar` | Fichas del ecosistema (roster + prospectos) con mediciones. |
+| `mg_salud_historial` | Reportes semanales de salud. Append-only. |
+| `mg_comentarios` | Hilos polimorficos por `(entidad_tipo, entidad_id)` con @menciones. |
+| `mg_avisos` | Bandeja por persona. Privada: ni un owner ve la ajena. |
 | `mg_bitacora` | Append-only: quien cambio que. Sin policy de UPDATE/DELETE. |
 
 La `003` ademas abre `mg1_inscripciones` a lectura para el staff autenticado:
