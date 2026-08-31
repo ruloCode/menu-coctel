@@ -123,7 +123,13 @@ export function agendarSesiones(s: Snapshot): Evento[] {
         const cap = dow === 6 ? S.satBlocks : S.weekdayBlocks
         const wk = claveSemana(d)
         if ((cargaDia[d] ?? 0) < cap && (cargaSemana[wk] ?? 0) < S.weeklyCap) {
-          const id = `${item.p.id}:ses${item.i}`
+          // El numero es ABSOLUTO (grabadas + i), no relativo a lo que falta.
+          // Con numeracion relativa, marcar una sesion sube `grabados`, se
+          // programa una menos y los ids se corren: la siguiente pendiente
+          // heredaba el `hecho` de la que se acababa de cerrar y aparecia
+          // grabada sin estarlo.
+          const n = item.p.grabados + item.i
+          const id = `${item.p.id}:ses${n}`
           const st = s.eventosEstado[id]
           if (!st?.eliminado) {
             sesiones.push({
@@ -131,7 +137,7 @@ export function agendarSesiones(s: Snapshot): Evento[] {
               proyecto_id: item.p.id,
               tipo: "sesion",
               fecha: st?.fecha_override ?? d,
-              etiqueta: `🎙 Sesión ${item.i}/${item.p.tracks - item.p.grabados} · ${artistaPorId(s, item.p.artista_id)?.nombre ?? "?"}`,
+              etiqueta: `🎙 Sesión ${n}/${item.p.tracks} · ${artistaPorId(s, item.p.artista_id)?.nombre ?? "?"}`,
               tarde: d > item.deadline,
               ...anotaciones(s, id),
             })
@@ -452,4 +458,35 @@ export function saludVencida(p: Proyecto, dias = 10): boolean {
 
 export function comentariosDe(s: Snapshot, tipo: string, id: string) {
   return s.comentarios.filter((c) => c.entidad_tipo === tipo && c.entidad_id === id)
+}
+
+/**
+ * Avance de un proyecto medido sobre sus hitos derivados.
+ *
+ * Deliberadamente NO cuenta las sesiones de grabación: el agendador solo
+ * programa sesiones para lo que falta grabar, así que marcar una sesión sube
+ * `grabados` y hace que se programe una menos. El total encogería y la barra
+ * daría saltos hacia atrás. Las canciones grabadas se informan aparte
+ * (`grabados/tracks`), que es el dato que la gente espera ver.
+ */
+export function avanceProyecto(s: Snapshot, p: Proyecto) {
+  const tareas = eventosProyecto(s, p)
+  const hechas = tareas.filter((e) => e.hecho).length
+  const total = tareas.length
+  return {
+    tareas,
+    hechas,
+    total,
+    pct: total ? Math.round((hechas / total) * 100) : 0,
+    completo: total > 0 && hechas === total,
+  }
+}
+
+/** Color de la barra de avance. El verde de cerrado reutiliza --c-post: en
+ *  esta paleta el verde ya significa "terminado, no pide nada". */
+export function colorAvance(pct: number, completo: boolean): string {
+  if (completo) return "var(--c-post)"
+  if (pct >= 60) return "var(--c-pre)"
+  if (pct >= 30) return "var(--c-release)"
+  return "var(--brand)"
 }
