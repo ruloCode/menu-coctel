@@ -981,3 +981,73 @@
   .pulso-fila .via i, .pulso svg circle { transition: none !important; }
 }
 .alert-dueno { white-space: nowrap; color: var(--ink2); padding-left: 12px; }
+/* ---------- copiar al portapapeles ---------- */
+.copiar {
+  background: none; border: 0; padding: 2px; line-height: 0;
+  color: var(--muted); border-radius: 5px; cursor: pointer;
+  /* Tenue pero visible: si se esconde del todo hasta el hover, nadie
+     descubre que la tabla se puede copiar. */
+  opacity: .4; transition: opacity .12s, color .12s;
+}
+.dato { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.dato:hover .copiar, .copiar:focus-visible { opacity: 1; }
+.copiar:hover { color: var(--ink); background: var(--page); }
+
+/* ---------- disponibilidad MG1 ---------- */
+.dispo-celda {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: none; border: 0; padding: 2px; cursor: pointer; border-radius: 6px;
+}
+.dispo-celda:hover { background: var(--page); }
+.dispo-mini {
+  font-size: 10px; font-weight: 700; letter-spacing: .03em;
+  padding: 1px 5px; border-radius: 7px;
+  border: 1px solid var(--grid); color: var(--muted); white-space: nowrap;
+}
+.dispo-mini.on { color: #fff; }
+
+.dispo-editor { padding: 4px 2px 10px; }
+.dispo-cabeza { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.dispo-cabeza .copiar { opacity: .6; }
+
+.dispo-bloque { margin-bottom: 12px; }
+.dispo-bloque:last-child { margin-bottom: 0; }
+.dispo-bloque h4, .dispo-titulo {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 650; margin-bottom: 2px;
+}
+.dispo-bloque h4 i, .dispo-titulo i {
+  width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none;
+}
+.dispo-bloque p { margin-bottom: 7px; max-width: 62ch; }
+
+.dispo-dias { display: flex; gap: 7px; flex-wrap: wrap; }
+.dispo-dia {
+  border: 1px solid var(--grid); border-radius: 9px;
+  padding: 5px 6px; min-width: 66px; background: var(--surface);
+}
+.dispo-dia.on { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.dispo-dia .fecha {
+  display: block; width: 100%; background: none; border: 0; cursor: pointer;
+  font-size: 12px; font-weight: 650; color: var(--ink2); padding: 1px 2px;
+  font-variant-numeric: tabular-nums;
+}
+.dispo-dia.on .fecha { color: var(--ink); }
+.dispo-dia .fecha:disabled { cursor: default; }
+
+.dispo-franjas { display: flex; gap: 3px; margin-top: 4px; }
+.dispo-franjas button {
+  flex: 1; padding: 2px 0; border-radius: 5px; cursor: pointer;
+  border: 1px solid var(--grid); background: none;
+  font-size: 10.5px; font-weight: 600; color: var(--muted);
+}
+.dispo-franjas button:hover:not(:disabled) { border-color: var(--muted); color: var(--ink); }
+.dispo-franjas button[aria-pressed="true"] {
+  background: var(--good); border-color: var(--good); color: #fff;
+}
+.dispo-franjas button:disabled { cursor: default; opacity: .55; }
+
+.dispo-resumen-cols {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}

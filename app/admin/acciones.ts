@@ -8,6 +8,7 @@ import { perfilActual } from "@/lib/mg/datos"
 import { puede, type Permiso } from "@/lib/mg/permisos"
 import { D, evitarFestivos, fmt, hoy, masDias } from "@/lib/mg/fechas"
 import type { EstadoProyecto, FichaRadar, Publicacion, TipoEvento } from "@/lib/mg/tipos"
+import { sanearDisponibilidad, type Disponibilidad } from "@/lib/mg1-disponibilidad"
 
 export interface Resultado {
   ok: boolean
@@ -673,12 +674,34 @@ export async function actualizarMiPerfil(nombre: string) {
    MG1
    ============================================================ */
 
-export async function actualizarInscripcion(id: string, campos: { estado?: string; notas?: string }) {
+export async function actualizarInscripcion(
+  id: string,
+  campos: { estado?: string; notas?: string; disponibilidad?: Disponibilidad },
+) {
   return mutar("operar", async () => {
     const supabase = await createClient()
-    const { error } = await supabase.from("mg1_inscripciones").update(campos).eq("id", id)
+
+    const { disponibilidad, ...resto } = campos
+    const parche: Record<string, unknown> = { ...resto }
+
+    // La disponibilidad se sanea aqui, no en el cliente: solo entran fechas y
+    // franjas del catalogo. La marca de tiempo la pone el servidor y es lo que
+    // distingue "no puede ningun dia" de "no le hemos preguntado".
+    if (disponibilidad !== undefined) {
+      parche.disponibilidad = sanearDisponibilidad(disponibilidad)
+      parche.disponibilidad_actualizada = new Date().toISOString()
+    }
+
+    if (Object.keys(parche).length === 0) return null
+
+    const { error } = await supabase.from("mg1_inscripciones").update(parche).eq("id", id)
     if (error) throw new Error(error.message)
-    return campos.estado ? `🎫 MG1: inscripción marcada como ${campos.estado}.` : null
+
+    if (campos.estado) return `🎫 MG1: inscripción marcada como ${campos.estado}.`
+    // Marcar franjas dispara un guardado por cada tanda de clics: una sola
+    // linea por inscripcion basta para la trazabilidad, sin inundar la bitacora.
+    if (disponibilidad !== undefined) return "🗓 MG1: se anotó la disponibilidad de una inscripción."
+    return null
   })
 }
 

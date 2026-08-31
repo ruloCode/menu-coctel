@@ -3,6 +3,7 @@ import "server-only"
 import { createClient } from "@/lib/supabase/server"
 import { AJUSTES_DEFAULT, REGLAS_DEFAULT } from "./constantes"
 import type { Aviso, Comentario, Perfil, ReporteSalud, Reunion, Snapshot } from "./tipos"
+import type { Disponibilidad } from "@/lib/mg1-disponibilidad"
 
 /** El perfil del usuario autenticado, o null si no hay sesion o esta inactivo. */
 export async function perfilActual(): Promise<Perfil | null> {
@@ -155,6 +156,10 @@ export interface InscripcionMG1 {
   por_que: string | null
   estado: string
   notas: string | null
+  /** Fecha -> franjas confirmadas. Ver lib/mg1-disponibilidad.ts. */
+  disponibilidad: Disponibilidad
+  /** null = todavia no se le ha preguntado (distinto de "no puede ningun dia"). */
+  disponibilidad_actualizada: string | null
   created_at: string
 }
 

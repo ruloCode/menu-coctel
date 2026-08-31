@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 
 /* Piezas visuales compartidas por todo el panel. */
 
@@ -141,5 +141,66 @@ export function Leyenda({ items }: { items: { color: string; label: string }[] }
         </span>
       ))}
     </div>
+  )
+}
+
+/**
+ * Copia un dato al portapapeles y lo confirma en el sitio.
+ *
+ * Existe para el trabajo de contactar por WhatsApp: nombre, nombre artístico y
+ * celular se copian de a uno sin seleccionar texto a mano en una tabla.
+ * `navigator.clipboard` no existe fuera de un contexto seguro (http que no sea
+ * localhost), de ahí el respaldo con execCommand.
+ */
+export function Copiar({ valor, etiqueta }: { valor: string; etiqueta: string }) {
+  const [copiado, setCopiado] = useState(false)
+  const reloj = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => () => clearTimeout(reloj.current), [])
+
+  const copiar = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(valor)
+      } else {
+        const caja = document.createElement("textarea")
+        caja.value = valor
+        caja.style.position = "fixed"
+        caja.style.opacity = "0"
+        document.body.appendChild(caja)
+        caja.select()
+        document.execCommand("copy")
+        document.body.removeChild(caja)
+      }
+      setCopiado(true)
+      clearTimeout(reloj.current)
+      reloj.current = setTimeout(() => setCopiado(false), 1400)
+    } catch {
+      setCopiado(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className="copiar"
+      onClick={copiar}
+      title={copiado ? "Copiado" : `Copiar ${etiqueta}`}
+      aria-label={copiado ? `${etiqueta} copiado` : `Copiar ${etiqueta}`}
+    >
+      {copiado ? (
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : (
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <rect x="5.6" y="5.6" width="8.4" height="8.4" rx="1.8"
+            stroke="currentColor" strokeWidth="1.6" />
+          <path d="M10.6 3.3a1.8 1.8 0 00-1.7-1.3H3.8A1.8 1.8 0 002 3.8v5.1c0 .8.5 1.4 1.3 1.7"
+            stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      )}
+    </button>
   )
 }

@@ -1,10 +1,25 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
+import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { fmt } from "@/lib/mg/fechas"
 import type { InscripcionMG1 } from "@/lib/mg/datos"
 import { actualizarInscripcion } from "@/app/admin/acciones"
-import { Kpi, Modal, Tag, Vacio } from "./ui"
+import { whatsapp } from "@/lib/mg/telefono"
+import {
+  BLOQUES_MG1,
+  FRANJAS,
+  FRANJA_DIA,
+  diasDe,
+  etiquetaDia,
+  etiquetaDiaLarga,
+  franjasDe,
+  puedeEse,
+  resumenTexto,
+  type BloqueMG1,
+  type Disponibilidad,
+  type Franja,
+} from "@/lib/mg1-disponibilidad"
+import { Copiar, Kpi, Modal, Tag, Vacio } from "./ui"
 
 const ESTADOS: Record<string, { label: string; color: string }> = {
   nuevo:            { label: "Nuevo",           color: "var(--c-sesion)" },
@@ -13,6 +28,14 @@ const ESTADOS: Record<string, { label: string; color: string }> = {
   descartado:       { label: "Descartado",      color: "var(--muted)" },
 }
 
+/** Columnas de la tabla: lo usa el colSpan de la fila desplegable. */
+const COLUMNAS = 9
+
+/** Lo que se marca cuando se activa un día completo en un bloque con franjas. */
+const TODAS_LAS_FRANJAS = FRANJAS.map((f) => f.valor)
+
+type Aviso = { txt: string; error?: boolean }
+
 export default function VistaMg1({
   inscripciones, puedeEditar,
 }: {
@@ -20,21 +43,105 @@ export default function VistaMg1({
   puedeEditar: boolean
 }) {
   const [filtro, setFiltro] = useState("todos")
+  const [filtroDispo, setFiltroDispo] = useState("todos")
   const [busca, setBusca] = useState("")
   const [detalle, setDetalle] = useState<InscripcionMG1 | null>(null)
+  const [abierta, setAbierta] = useState<string | null>(null)
   const [, arrancar] = useTransition()
+
+  // Copia local de lo que se está marcando. Sin esto cada clic esperaría al
+  // servidor para pintarse, y marcar ocho días se sentiría como un formulario.
+  const [locales, setLocales] = useState<Record<string, Disponibilidad>>({})
+  const [avisos, setAvisos] = useState<Record<string, Aviso>>({})
+  const relojes = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  useEffect(() => {
+    const pendientes = relojes.current
+    return () => Object.values(pendientes).forEach(clearTimeout)
+  }, [])
+
+  const dispoDe = useMemo(() => {
+    return (i: InscripcionMG1): Disponibilidad => locales[i.id] ?? i.disponibilidad ?? {}
+  }, [locales])
+
+  /** Guarda al soltar, no en cada clic: marcar tres franjas seguidas es una
+   *  sola escritura y una sola línea de bitácora, no seis. */
+  const programarGuardado = (id: string, dispo: Disponibilidad) => {
+    clearTimeout(relojes.current[id])
+    setAvisos((a) => ({ ...a, [id]: { txt: "Guardando…" } }))
+    relojes.current[id] = setTimeout(() => {
+      arrancar(async () => {
+        const res = await actualizarInscripcion(id, { disponibilidad: dispo })
+        if (!res.ok) {
+          // Se suelta la copia local para que la tabla vuelva a lo que hay en
+          // la base. Dejar pintado lo que no se guardo es peor que no pintarlo:
+          // el equipo seguiria adelante creyendo que quedo anotado.
+          setLocales((p) => {
+            const { [id]: _descartado, ...resto } = p
+            return resto
+          })
+        }
+        setAvisos((a) => ({
+          ...a,
+          [id]: res.ok ? { txt: "Guardado" } : { txt: res.error ?? "No se pudo guardar", error: true },
+        }))
+      })
+    }, 700)
+  }
+
+  const aplicar = (i: InscripcionMG1, fecha: string, franjas: Franja[]) => {
+    const dispo: Disponibilidad = { ...dispoDe(i) }
+    if (franjas.length) dispo[fecha] = franjas
+    else delete dispo[fecha]
+    setLocales((p) => ({ ...p, [i.id]: dispo }))
+    programarGuardado(i.id, dispo)
+  }
+
+  const alternarFranja = (i: InscripcionMG1, fecha: string, franja: Franja) => {
+    const previas = franjasDe(dispoDe(i), fecha)
+    aplicar(i, fecha, previas.includes(franja) ? previas.filter((f) => f !== franja) : [...previas, franja])
+  }
+
+  /** El encabezado del día marca o limpia la fecha entera. */
+  const alternarDia = (i: InscripcionMG1, fecha: string, bloque: BloqueMG1) => {
+    const previas = franjasDe(dispoDe(i), fecha)
+    if (previas.length) aplicar(i, fecha, [])
+    else aplicar(i, fecha, bloque.franjas ? [...TODAS_LAS_FRANJAS] : [FRANJA_DIA])
+  }
 
   const lista = useMemo(() => {
     let l = inscripciones
     if (filtro !== "todos") l = l.filter((i) => i.estado === filtro)
+    if (filtroDispo === "sin_preguntar") {
+      l = l.filter((i) => !i.disponibilidad_actualizada)
+    } else if (filtroDispo !== "todos") {
+      const bloque = BLOQUES_MG1.find((b) => b.clave === filtroDispo)
+      if (bloque) l = l.filter((i) => diasDe(dispoDe(i), bloque) > 0)
+    }
     if (busca) {
       const q = busca.toLowerCase()
-      l = l.filter((i) => `${i.nombre_artistico} ${i.nombre_completo} ${i.ciudad} ${i.email}`.toLowerCase().includes(q))
+      l = l.filter((i) =>
+        `${i.nombre_artistico} ${i.nombre_completo} ${i.ciudad} ${i.email} ${i.celular}`.toLowerCase().includes(q))
     }
     return l
-  }, [inscripciones, filtro, busca])
+  }, [inscripciones, filtro, filtroDispo, busca, dispoDe])
+
+  // Cuántas personas pueden cada fecha, sobre lo que se está viendo. Es el
+  // número con el que se va a negociar la agenda del estudio.
+  const resumen = useMemo(() => {
+    const dispos = lista.map((i) => locales[i.id] ?? i.disponibilidad ?? {})
+    return BLOQUES_MG1.map((b) => ({
+      bloque: b,
+      fechas: b.fechas.map((f) => ({
+        fecha: f,
+        total: dispos.filter((d) => puedeEse(d, f)).length,
+        porFranja: FRANJAS.map((fr) => dispos.filter((d) => franjasDe(d, f).includes(fr.valor)).length),
+      })),
+    }))
+  }, [lista, locales])
 
   const conteo = (e: string) => inscripciones.filter((i) => i.estado === e).length
+  const sinPreguntar = inscripciones.filter((i) => !i.disponibilidad_actualizada).length
 
   return (
     <>
@@ -52,6 +159,7 @@ export default function VistaMg1({
         <Kpi valor={conteo("nuevo")} label="Sin revisar" />
         <Kpi valor={conteo("preseleccionado")} label="Preseleccionados" />
         <Kpi valor={conteo("seleccionado")} label="Seleccionados" />
+        <Kpi valor={sinPreguntar} label="Sin preguntar disponibilidad" ayuda="Nadie les ha escrito todavía" />
       </div>
 
       <div className="card" style={{ padding: "10px 14px" }}>
@@ -60,7 +168,13 @@ export default function VistaMg1({
             <option value="todos">Todos los estados</option>
             {Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
           </select>
-          <input placeholder="Buscar nombre, ciudad o correo…" value={busca}
+          <select value={filtroDispo} onChange={(e) => setFiltroDispo(e.target.value)}
+            aria-label="Filtrar por disponibilidad">
+            <option value="todos">Toda disponibilidad</option>
+            <option value="sin_preguntar">Sin preguntar</option>
+            {BLOQUES_MG1.map((b) => <option key={b.clave} value={b.clave}>Disponible: {b.corto}</option>)}
+          </select>
+          <input placeholder="Buscar nombre, ciudad, correo o celular…" value={busca}
             onChange={(e) => setBusca(e.target.value)} style={{ flex: 1, minWidth: 180 }}
             aria-label="Buscar inscripción" />
           <span className="small muted">{lista.length} resultados</span>
@@ -77,45 +191,118 @@ export default function VistaMg1({
           <div className="tabla-wrap">
             <table>
               <thead>
-                <tr><th>Recibida</th><th>Nombre artístico</th><th>Ciudad</th><th>Música</th><th>Estado</th><th /></tr>
+                <tr>
+                  <th>Recibida</th>
+                  <th>Nombre artístico</th>
+                  <th>Nombre completo</th>
+                  <th>Celular</th>
+                  <th>Ciudad</th>
+                  <th>Música</th>
+                  <th>Disponibilidad</th>
+                  <th>Estado</th>
+                  <th />
+                </tr>
               </thead>
               <tbody>
-                {lista.map((i) => (
-                  <tr key={i.id}>
-                    <td className="mono small" style={{ whiteSpace: "nowrap" }}>{fmt(i.created_at.slice(0, 10))}</td>
-                    <td>
-                      <b>{i.nombre_artistico}</b>
-                      <br /><span className="muted small">{i.nombre_completo}</span>
-                    </td>
-                    <td className="small">{i.ciudad}</td>
-                    <td className="small">
-                      {i.link_musica ? (
-                        <a href={i.link_musica} target="_blank" rel="noopener noreferrer">Escuchar ↗</a>
-                      ) : "—"}
-                    </td>
-                    <td>
-                      {puedeEditar ? (
-                        <select
-                          value={i.estado}
-                          onChange={(e) => arrancar(async () => { await actualizarInscripcion(i.id, { estado: e.target.value }) })}
-                          aria-label={`Estado de ${i.nombre_artistico}`}
-                        >
-                          {Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                        </select>
-                      ) : (
-                        <Tag color={ESTADOS[i.estado]?.color}>{ESTADOS[i.estado]?.label ?? i.estado}</Tag>
-                      )}
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      <button className="btn sm" onClick={() => setDetalle(i)}>Ver ficha</button>
-                    </td>
-                  </tr>
-                ))}
+                {lista.map((i) => {
+                  const dispo = dispoDe(i)
+                  const wa = whatsapp(i.celular)
+                  const desplegada = abierta === i.id
+                  return (
+                    <Fragment key={i.id}>
+                      <tr>
+                        <td className="mono small" style={{ whiteSpace: "nowrap" }}>{fmt(i.created_at.slice(0, 10))}</td>
+                        <td>
+                          <span className="dato">
+                            <b>{i.nombre_artistico}</b>
+                            <Copiar valor={i.nombre_artistico} etiqueta="el nombre artístico" />
+                          </span>
+                        </td>
+                        <td className="small">
+                          <span className="dato">
+                            {i.nombre_completo}
+                            <Copiar valor={i.nombre_completo} etiqueta="el nombre completo" />
+                          </span>
+                        </td>
+                        <td className="small">
+                          <span className="dato">
+                            <span className="mono">{i.celular}</span>
+                            <Copiar valor={i.celular} etiqueta="el celular" />
+                            {wa ? (
+                              <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer"
+                                title={`Abrir WhatsApp con ${i.nombre_artistico}`}
+                                aria-label={`Abrir WhatsApp con ${i.nombre_artistico}`}>WA ↗</a>
+                            ) : null}
+                          </span>
+                        </td>
+                        <td className="small">{i.ciudad}</td>
+                        <td className="small" style={{ whiteSpace: "nowrap" }}>
+                          {i.link_musica ? (
+                            <a href={i.link_musica} target="_blank" rel="noopener noreferrer">Escuchar ↗</a>
+                          ) : "—"}
+                        </td>
+                        <td>
+                          <button type="button" className="dispo-celda" aria-expanded={desplegada}
+                            onClick={() => setAbierta(desplegada ? null : i.id)}
+                            aria-label={`Disponibilidad de ${i.nombre_artistico}`}>
+                            {i.disponibilidad_actualizada ? (
+                              BLOQUES_MG1.map((b) => {
+                                const n = diasDe(dispo, b)
+                                return (
+                                  <span key={b.clave} className={n ? "dispo-mini on" : "dispo-mini"}
+                                    style={n ? { background: b.color, borderColor: b.color } : undefined}
+                                    title={`${b.titulo}: ${n} de ${b.fechas.length} fechas`}>
+                                    {b.abrev}{b.fechas.length > 1 && n ? ` ${n}` : ""}
+                                  </span>
+                                )
+                              })
+                            ) : (
+                              <span className="chipbtn">sin preguntar</span>
+                            )}
+                          </button>
+                        </td>
+                        <td>
+                          {puedeEditar ? (
+                            <select
+                              value={i.estado}
+                              onChange={(e) => arrancar(async () => { await actualizarInscripcion(i.id, { estado: e.target.value }) })}
+                              aria-label={`Estado de ${i.nombre_artistico}`}
+                            >
+                              {Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                            </select>
+                          ) : (
+                            <Tag color={ESTADOS[i.estado]?.color}>{ESTADOS[i.estado]?.label ?? i.estado}</Tag>
+                          )}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          <button className="btn sm" onClick={() => setDetalle(i)}>Ver ficha</button>
+                        </td>
+                      </tr>
+
+                      {desplegada ? (
+                        <tr>
+                          <td colSpan={COLUMNAS} style={{ background: "var(--page)" }}>
+                            <EditorDisponibilidad
+                              inscripcion={i}
+                              dispo={dispo}
+                              puedeEditar={puedeEditar}
+                              aviso={avisos[i.id]}
+                              onFranja={(fecha, franja) => alternarFranja(i, fecha, franja)}
+                              onDia={(fecha, bloque) => alternarDia(i, fecha, bloque)}
+                            />
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      <ResumenFechas resumen={resumen} total={lista.length} />
 
       <div className="card">
         <h2>Sobre estos datos</h2>
@@ -126,20 +313,143 @@ export default function VistaMg1({
         </p>
       </div>
 
-      {detalle ? <Ficha inscripcion={detalle} puedeEditar={puedeEditar} onClose={() => setDetalle(null)} /> : null}
+      {detalle ? <Ficha inscripcion={detalle} dispo={dispoDe(detalle)} puedeEditar={puedeEditar} onClose={() => setDetalle(null)} /> : null}
     </>
   )
 }
 
-function Ficha({
-  inscripcion, puedeEditar, onClose,
+/* ============================================================
+   Disponibilidad
+   ============================================================ */
+
+function EditorDisponibilidad({
+  inscripcion, dispo, puedeEditar, aviso, onFranja, onDia,
 }: {
   inscripcion: InscripcionMG1
+  dispo: Disponibilidad
+  puedeEditar: boolean
+  aviso?: Aviso
+  onFranja: (fecha: string, franja: Franja) => void
+  onDia: (fecha: string, bloque: BloqueMG1) => void
+}) {
+  return (
+    <div className="dispo-editor">
+      <div className="dispo-cabeza">
+        <b>Disponibilidad de {inscripcion.nombre_artistico}</b>
+        <div className="spacer" />
+        {aviso ? (
+          <span className="small" style={{ color: aviso.error ? "var(--critical)" : "var(--muted)" }} role="status">
+            {aviso.txt}
+          </span>
+        ) : inscripcion.disponibilidad_actualizada ? (
+          <span className="small muted">
+            Anotada el {fmt(inscripcion.disponibilidad_actualizada.slice(0, 10))}
+          </span>
+        ) : (
+          <span className="small muted">Todavía no se le ha preguntado</span>
+        )}
+        <Copiar valor={resumenTexto(dispo)} etiqueta="el resumen de disponibilidad" />
+      </div>
+
+      {BLOQUES_MG1.map((b) => (
+        <div className="dispo-bloque" key={b.clave}>
+          <h4><i style={{ background: b.color }} aria-hidden />{b.titulo}</h4>
+          <p className="small muted">{b.descripcion}</p>
+          <div className="dispo-dias">
+            {b.fechas.map((f) => {
+              const franjas = franjasDe(dispo, f)
+              const activo = franjas.length > 0
+              return (
+                <div className={activo ? "dispo-dia on" : "dispo-dia"} key={f}>
+                  <button type="button" className="fecha" disabled={!puedeEditar} aria-pressed={activo}
+                    onClick={() => onDia(f, b)}
+                    aria-label={`${activo ? "Quitar" : "Marcar"} ${etiquetaDiaLarga(f)}`}>
+                    {etiquetaDia(f)}
+                  </button>
+                  {b.franjas ? (
+                    <div className="dispo-franjas">
+                      {FRANJAS.map((fr) => (
+                        <button key={fr.valor} type="button" disabled={!puedeEditar}
+                          aria-pressed={franjas.includes(fr.valor)}
+                          aria-label={`${fr.label} del ${etiquetaDiaLarga(f)}`}
+                          title={`${fr.label} · ${fr.horas}`}
+                          onClick={() => onFranja(f, fr.valor)}>
+                          {fr.corto}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ResumenFechas({
+  resumen, total,
+}: {
+  resumen: { bloque: BloqueMG1; fechas: { fecha: string; total: number; porFranja: number[] }[] }[]
+  total: number
+}) {
+  return (
+    <div className="card">
+      <h2>Disponibilidad por fecha</h2>
+      <p className="small muted">
+        Cuántas de las {total} personas que estás viendo pueden cada día. Cambia con los filtros de arriba:
+        para cuadrar con el estudio, filtra primero por preseleccionados.
+      </p>
+      <div className="dispo-resumen-cols">
+        {resumen.map(({ bloque, fechas }) => (
+          <div key={bloque.clave}>
+            <h4 className="dispo-titulo"><i style={{ background: bloque.color }} aria-hidden />{bloque.titulo}</h4>
+            <div className="tabla-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Personas</th>
+                    {bloque.franjas ? FRANJAS.map((f) => <th key={f.valor}>{f.label}</th>) : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {fechas.map((f) => (
+                    <tr key={f.fecha}>
+                      <td className="small" style={{ whiteSpace: "nowrap" }}>{etiquetaDiaLarga(f.fecha)}</td>
+                      <td className="mono"><b>{f.total}</b></td>
+                      {bloque.franjas
+                        ? f.porFranja.map((n, k) => <td key={k} className="mono small">{n}</td>)
+                        : null}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   Ficha
+   ============================================================ */
+
+function Ficha({
+  inscripcion, dispo, puedeEditar, onClose,
+}: {
+  inscripcion: InscripcionMG1
+  dispo: Disponibilidad
   puedeEditar: boolean
   onClose: () => void
 }) {
   const [notas, setNotas] = useState(inscripcion.notas ?? "")
   const [pendiente, arrancar] = useTransition()
+  const wa = whatsapp(inscripcion.celular)
 
   return (
     <Modal
@@ -161,9 +471,25 @@ function Ficha({
       <div className="tabla-wrap">
         <table>
           <tbody>
-            <tr><th style={{ width: 150 }}>Nombre completo</th><td>{inscripcion.nombre_completo}</td></tr>
+            <tr>
+              <th style={{ width: 150 }}>Nombre artístico</th>
+              <td><span className="dato">{inscripcion.nombre_artistico}<Copiar valor={inscripcion.nombre_artistico} etiqueta="el nombre artístico" /></span></td>
+            </tr>
+            <tr>
+              <th>Nombre completo</th>
+              <td><span className="dato">{inscripcion.nombre_completo}<Copiar valor={inscripcion.nombre_completo} etiqueta="el nombre completo" /></span></td>
+            </tr>
             <tr><th>Correo</th><td><a href={`mailto:${inscripcion.email}`}>{inscripcion.email}</a></td></tr>
-            <tr><th>Celular</th><td className="mono">{inscripcion.celular}</td></tr>
+            <tr>
+              <th>Celular</th>
+              <td>
+                <span className="dato">
+                  <span className="mono">{inscripcion.celular}</span>
+                  <Copiar valor={inscripcion.celular} etiqueta="el celular" />
+                  {wa ? <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">WhatsApp ↗</a> : null}
+                </span>
+              </td>
+            </tr>
             <tr><th>Ciudad</th><td>{inscripcion.ciudad}</td></tr>
             <tr>
               <th>Música</th>
@@ -178,6 +504,14 @@ function Ficha({
           </tbody>
         </table>
       </div>
+
+      <h3>Disponibilidad</h3>
+      <p className="small" style={{ marginBottom: 4 }}>{resumenTexto(dispo)}</p>
+      <p className="small muted">
+        {inscripcion.disponibilidad_actualizada
+          ? `Anotada el ${fmt(inscripcion.disponibilidad_actualizada.slice(0, 10))}. Se edita desde la columna Disponibilidad de la tabla.`
+          : "Todavía no se le ha preguntado. Se anota desde la columna Disponibilidad de la tabla."}
+      </p>
 
       {inscripcion.por_que ? (
         <>
