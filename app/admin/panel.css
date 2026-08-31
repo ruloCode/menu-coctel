@@ -750,3 +750,112 @@
 .reunion-fila:hover { border-color: var(--baseline); }
 .reunion-fila b { font-size: 14.5px; display: block; }
 .reunion-fila .meta { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ---------- avance por tareas (Artistas y Estudio) ----------
+   Un proyecto avanza sobre sus hitos derivados. La barra es el resumen; la
+   lista desplegable es el detalle. El verde de completado reutiliza --c-post
+   a propósito: en esta paleta el verde ya significa "cerrado, no pide nada". */
+
+.prog { display: inline-flex; align-items: center; gap: 10px; }
+.prog .via {
+  width: 132px; height: 7px; border-radius: 4px;
+  background: var(--grid); overflow: hidden; flex-shrink: 0;
+}
+.prog .via i { display: block; height: 100%; border-radius: 4px; transition: width 0.28s ease; }
+.prog .pct {
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+  width: 36px; text-align: right;
+}
+.prog.sm .via { width: 92px; height: 5px; }
+.prog.sm .pct { font-size: 11.5px; font-weight: 600; }
+
+/* Cabecera de artista: agrupa sus proyectos */
+.art-bloque {
+  background: var(--surface); border: 1px solid var(--grid);
+  border-radius: var(--r-lg); overflow: hidden; margin-bottom: 10px;
+}
+.art-cab { display: flex; align-items: center; gap: 12px; padding: 12px 15px; }
+.art-cab .ini {
+  width: 30px; height: 30px; border-radius: var(--r-md); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+}
+
+/* Fila de proyecto: clicable para desplegar */
+.proy-fila {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 15px 11px 22px; border-top: 1px solid var(--grid);
+  width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0;
+  text-align: left; color: inherit;
+}
+.proy-fila:hover { background: var(--page); }
+.proy-fila .flecha { transition: transform 0.18s ease; flex-shrink: 0; color: var(--muted); }
+.proy-fila[aria-expanded="true"] .flecha { transform: rotate(90deg); }
+.proy-fila .nom { font-weight: 600; font-size: 13.5px; }
+.proy-fila .sub { font-size: 11.5px; color: var(--muted); }
+
+/* Proyecto terminado: se apaga. La lectura correcta es "ya no pide nada". */
+.proy-fila.cerrado, .proy-cuerpo.cerrado { background: color-mix(in srgb, var(--c-post) 7%, transparent); }
+.proy-fila.cerrado:hover { background: color-mix(in srgb, var(--c-post) 11%, transparent); }
+.proy-fila.cerrado .nom { color: var(--muted); text-decoration: line-through; }
+
+/* Checklist de hitos, en dos columnas */
+.tareas {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 3px 22px; padding: 4px 15px 14px 48px;
+}
+.tarea {
+  display: flex; align-items: center; gap: 9px; padding: 6px 9px;
+  border-radius: 7px; background: none; border: 0; width: 100%;
+  text-align: left; color: inherit; font-size: 12.5px;
+}
+.tarea:hover { background: var(--page); }
+.tarea .caja {
+  width: 16px; height: 16px; border-radius: 5px; flex-shrink: 0;
+  border: 1.6px solid var(--baseline); display: flex;
+  align-items: center; justify-content: center; color: #fff;
+}
+.tarea .punto { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+.tarea .txt { flex: 1; min-width: 0; }
+.tarea .cuando { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tarea.hecha { background: color-mix(in srgb, var(--c-post) 8%, transparent); }
+.tarea.hecha .caja { background: var(--c-post); border-color: var(--c-post); }
+.tarea.hecha .punto { opacity: 0.45; }
+.tarea.hecha .txt, .tarea.hecha .cuando { color: var(--muted); text-decoration: line-through; }
+.tarea:disabled { cursor: default; }
+.tarea.vencida .cuando { color: var(--critical); font-weight: 600; }
+
+/* Estudio: una sesión es un bloque, no una fila */
+.sesiones { display: flex; flex-wrap: wrap; gap: 6px; }
+.sesion {
+  display: flex; align-items: center; gap: 7px; padding: 5px 10px 5px 8px;
+  border: 1px solid var(--grid); background: var(--page);
+  border-radius: var(--r-md); min-width: 106px; text-align: left; color: inherit;
+}
+.sesion:hover { border-color: var(--baseline); }
+.sesion .caja {
+  width: 15px; height: 15px; border-radius: 5px; flex-shrink: 0;
+  border: 1.6px solid var(--baseline); display: flex;
+  align-items: center; justify-content: center; color: #fff;
+}
+.sesion .cuando { font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sesion .n { font-size: 10px; color: var(--muted); }
+.sesion.hecha { background: color-mix(in srgb, var(--c-post) 8%, transparent); border-color: color-mix(in srgb, var(--c-post) 32%, transparent); }
+.sesion.hecha .caja { background: var(--c-post); border-color: var(--c-post); }
+.sesion.hecha .cuando { color: var(--muted); text-decoration: line-through; }
+.sesion.tarde { border-color: var(--critical); }
+.sesion.tarde .cuando { color: var(--critical); }
+
+/* Capacidad: doce semanas en una tira, no doce tarjetas apiladas */
+.cap-tira { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+.cap-col { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.cap-col .via {
+  height: 42px; background: var(--grid); border-radius: var(--r-sm);
+  display: flex; flex-direction: column-reverse; overflow: hidden;
+}
+.cap-col .via i { display: block; border-radius: var(--r-sm); }
+.cap-col .et {
+  font-size: 10px; color: var(--muted); text-align: center;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
