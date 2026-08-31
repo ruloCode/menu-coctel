@@ -12,6 +12,7 @@ const navItems = [
   { href: "/proyectos", label: "Proyectos" },
   { href: "/mg-flow", label: "MG Flow" },
   { href: "/galeria", label: "Galeria" },
+  { href: "/mg1/convocatoria", label: "Convocatoria" },
   { href: "/contacto", label: "Contacto" },
 ]
 
@@ -72,6 +73,16 @@ export default function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+
+            {/* Acceso al panel administrativo: deliberadamente discreto.
+                Apunta a /admin y no a /admin/login: el middleware manda al
+                login solo si no hay sesion, y al dashboard si ya la hay. */}
+            <Link
+              href="/admin"
+              className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/30 hover:text-white/60 transition-colors duration-200 border-l border-white/10 pl-6"
+            >
+              Login
+            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -133,6 +144,20 @@ export default function SiteHeader() {
                   </Link>
                 </motion.div>
               ))}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * (navItems.length + 2), duration: 0.4 }}
+                className="pt-6 mt-2 border-t border-white/10"
+              >
+                <Link
+                  href="/admin"
+                  className="font-mono text-xs uppercase tracking-[0.25em] text-white/30 hover:text-white/60 transition-colors block"
+                  onClick={toggleMenu}
+                >
+                  Login
+                </Link>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
