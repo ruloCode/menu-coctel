@@ -156,7 +156,7 @@ export default function InicioProduccion({ snapshot, yo }: { snapshot: Snapshot;
                       <td>{artista?.nombre ?? "—"}</td>
                       <td>{p.titulo}</td>
                       <td>
-                        <Tag color={estado?.color}>{estado?.label ?? p.estado}</Tag>
+                        <Tag suave color={estado?.color}>{estado?.label ?? p.estado}</Tag>
                       </td>
                       <td className="mono small">
                         {p.grabados}/{p.tracks}

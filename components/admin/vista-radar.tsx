@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import { CATS, NETS, RELACIONES, type CampoRadar } from "@/lib/mg/constantes"
 import { audiencia, crecimiento, puntaje, recomendacion, ultimaMedicion } from "@/lib/mg/radar"
 import { fmt, fmtLargo, hoy, masDias } from "@/lib/mg/fechas"
@@ -20,6 +20,15 @@ export default function VistaRadar({ snapshot, puedeEditar }: { snapshot: Snapsh
   const [ficha, setFicha] = useState<FichaRadar | null>(null)
   const [midiendo, setMidiendo] = useState<FichaRadar | null>(null)
   const [nueva, setNueva] = useState(false)
+  // Id de una ficha recién creada, a la espera de que llegue en el snapshot
+  // revalidado para abrirla. El servidor tarda un instante en devolverla.
+  const [esperando, setEsperando] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!esperando) return
+    const recien = snapshot.radar.find((f) => f.id === esperando)
+    if (recien) { setFicha(recien); setEsperando(null) }
+  }, [esperando, snapshot.radar])
 
   const t = hoy()
   const esFestival = cat === "festival"
@@ -185,7 +194,7 @@ export default function VistaRadar({ snapshot, puedeEditar }: { snapshot: Snapsh
         />
       ) : null}
       {midiendo ? <Medir ficha={midiendo} onClose={() => setMidiendo(null)} /> : null}
-      {nueva ? <NuevaFicha onClose={() => setNueva(false)} /> : null}
+      {nueva ? <NuevaFicha onClose={() => setNueva(false)} onCreada={(id) => { setNueva(false); setEsperando(id) }} /> : null}
     </>
   )
 }
@@ -438,7 +447,7 @@ function Medir({ ficha, onClose }: { ficha: FichaRadar; onClose: () => void }) {
   )
 }
 
-function NuevaFicha({ onClose }: { onClose: () => void }) {
+function NuevaFicha({ onClose, onCreada }: { onClose: () => void; onCreada: (id: string) => void }) {
   const [nombre, setNombre] = useState("")
   const [cat, setCat] = useState("venue")
   const [rel, setRel] = useState<Relacion>("no hemos hablado")
@@ -449,7 +458,10 @@ function NuevaFicha({ onClose }: { onClose: () => void }) {
     if (!nombre.trim()) { setError("Ponle un nombre a la ficha."); return }
     arrancar(async () => {
       const r = await crearFicha({ nombre: nombre.trim(), cat, rel })
-      if (r.ok) onClose()
+      // Abre la ficha recién creada en vez de dejarla en la lista: crear y
+      // llenar son un solo gesto, no dos separados por una búsqueda.
+      if (r.ok && r.id) onCreada(r.id)
+      else if (r.ok) onClose()
       else setError(r.error ?? "No se pudo crear")
     })
   }

@@ -4,12 +4,34 @@ import { useEffect, useRef, type ReactNode } from "react"
 
 /* Piezas visuales compartidas por todo el panel. */
 
-export function Tag({ color, outline, children }: { color?: string; outline?: boolean; children: ReactNode }) {
-  return (
-    <span className={outline ? "tag outline" : "tag"} style={outline ? undefined : { background: color }}>
-      {children}
-    </span>
-  )
+/**
+ * `suave` invierte el tratamiento: el color pasa a ser la TINTA sobre un fondo
+ * teñido, en vez de texto blanco sobre el color liso.
+ *
+ * El motivo es legibilidad. Blanco sobre el ámbar de release (#eda100) o sobre
+ * el morado claro del tema oscuro (#9085e9) no llega al contraste mínimo — se
+ * lee mal justo en la columna de estado, que es la que más se escanea. Con
+ * fondo teñido al 14% el texto conserva el significado del color y se lee.
+ */
+export function Tag({
+  color, outline, suave, children,
+}: {
+  color?: string
+  outline?: boolean
+  suave?: boolean
+  children: ReactNode
+}) {
+  if (outline) return <span className="tag outline">{children}</span>
+
+  if (suave) {
+    return (
+      <span className="tag suave" style={{ "--c": color } as React.CSSProperties}>
+        {children}
+      </span>
+    )
+  }
+
+  return <span className="tag" style={{ background: color }}>{children}</span>
 }
 
 export function Kpi({ valor, label, ayuda }: { valor: ReactNode; label: string; ayuda?: string }) {

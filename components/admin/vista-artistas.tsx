@@ -296,7 +296,7 @@ function FilaProyecto({
           <span className="sub">{p.tipo} · {p.grabados}/{p.tracks} grabadas</span>
         </span>
 
-        <Tag color={completo ? "var(--c-post)" : estado?.color}>
+        <Tag suave color={completo ? "var(--c-post)" : estado?.color}>
           {completo ? "Completado" : estado?.label ?? p.estado}
         </Tag>
 
