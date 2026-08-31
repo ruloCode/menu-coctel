@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { perfilActual } from "@/lib/mg/datos"
@@ -11,6 +12,8 @@ import type { EstadoProyecto, FichaRadar, Publicacion, TipoEvento } from "@/lib/
 export interface Resultado {
   ok: boolean
   error?: string
+  /** Id de lo recién creado, cuando la interfaz necesita abrirlo enseguida. */
+  id?: string
 }
 
 const OK: Resultado = { ok: true }
@@ -276,11 +279,16 @@ export async function aplicarQuePaso(proyectoId: string, que: QuePaso, dias = 14
 
     if (que === "delay") {
       const releaseAnterior = p.release
-      // Los releases siempre aterrizan en viernes (día estándar de la industria).
-      let nr = masDias(p.release, dias)
-      while (D(nr).getDay() !== 5) nr = masDias(nr, 1)
+      // El release conserva su DÍA DE LA SEMANA en vez de forzarse a viernes.
+      // El viernes sigue siendo el día por defecto (los DSP refrescan sus
+      // listas ese día), pero ya no es el único: con 30 lanzamientos en siete
+      // meses no caben todos en los viernes disponibles, y un jueves sirve
+      // mejor para lo que se apoya en un estreno de YouTube.
+      const diaOriginal = D(p.release).getDay()
+      let nr = evitarFestivos(masDias(p.release, dias))
+      let guard = 0
+      while (D(nr).getDay() !== diaOriginal && guard < 7) { nr = masDias(nr, 1); guard++ }
       nr = evitarFestivos(nr)
-      while (D(nr).getDay() !== 5) nr = masDias(nr, 1)
 
       await supabase.from("mg_proyectos")
         .update({ release: nr, pre_start: masDias(p.pre_start, dias) })
@@ -563,19 +571,32 @@ export async function guardarFicha(id: string, campos: Partial<FichaRadar>) {
   })
 }
 
-export async function crearFicha(datos: { nombre: string; cat: string; rel: string }) {
-  return mutar("operar", async () => {
+/**
+ * Devuelve el id de la ficha creada, y por eso no usa `mutar`: la interfaz lo
+ * necesita para abrir la ficha nueva en el acto. Crear una ficha y tener que
+ * ir a buscarla en la lista para llenarla era el paso de más que sobraba.
+ */
+export async function crearFicha(datos: { nombre: string; cat: string; rel: string }): Promise<Resultado> {
+  try {
+    await exigir("operar")
     const supabase = await createClient()
+    const id = `rp${Date.now().toString(36)}`
+
     const { error } = await supabase.from("mg_radar").insert({
-      id: `rp${Date.now().toString(36)}`,
+      id,
       origen: "externo",
       nombre: datos.nombre,
       cat: datos.cat,
       rel: datos.rel,
     })
     if (error) throw new Error(error.message)
-    return `🔭 Nueva ficha en el radar: ${datos.nombre}.`
-  })
+
+    await bitacora(`🔭 Nueva ficha en el radar: ${datos.nombre}.`)
+    refrescar()
+    return { ok: true, id }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "No se pudo crear la ficha" }
+  }
 }
 
 export async function eliminarFicha(id: string, nombre: string) {
@@ -1076,4 +1097,73 @@ export async function crearReunion(datos: { titulo: string; fecha: string; durac
     if (error) throw new Error(error.message)
     return `📋 Nueva reunión registrada: ${datos.titulo}.`
   })
+}
+
+/* ============================================================
+   Zeri · solicitudes de cambio
+   ============================================================ */
+
+/**
+ * Quien no puede operar no aplica un cambio de calendario: lo PIDE, y le llega
+ * a quien sí decide. Es la jerarquía que el equipo ya tiene en la vida real —
+ * un arreglista sabe que se atrasó, pero mover un release afecta a marketing,
+ * al estudio y al distribuidor.
+ *
+ * Se apoya en mg_avisos (tipo 'aprobacion') en vez de estrenar una tabla: una
+ * solicitud ES un aviso dirigido, y la bandeja ya resuelve leído/no leído,
+ * privacidad por persona y enlace de vuelta.
+ */
+export async function solicitarCambio(
+  proyectoId: string,
+  resumen: string,
+  nota: string,
+): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+
+  try {
+    const supabase = await createClient()
+
+    // Quien decide: los roles con permiso para operar el calendario.
+    const { data: aprobadores } = await supabase
+      .from("perfiles").select("id").eq("activo", true).in("rol", ["owner", "admin", "manager"])
+
+    const ids = (aprobadores ?? []).map((a) => a.id)
+    if (!ids.length) {
+      return { ok: false, error: "No hay nadie con permiso para aprobar cambios de calendario." }
+    }
+
+    await avisar(ids, {
+      tipo: "aprobacion",
+      titulo: `${perfil.nombre} pide ${resumen}`,
+      cuerpo: nota ? `${nota}\n\nSolicitado desde Zeri.` : "Solicitado desde Zeri.",
+      enlace: `/admin/artistas`,
+    })
+
+    await bitacora(`${perfil.nombre} pidió ${resumen} (proyecto ${proyectoId})`)
+    refrescar()
+    return OK
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "No se pudo enviar la solicitud" }
+  }
+}
+
+/**
+ * "Ver como": deja a un owner o admin previsualizar el panel de otro rol.
+ * Guarda solo una cookie; quien decide si vale es perfilActual, comprobando el
+ * rol REAL contra la base. Así una cookie puesta a mano no concede nada.
+ */
+export async function verComo(rol: string): Promise<Resultado> {
+  const perfil = await perfilActual()
+  if (!perfil) redirect("/admin/login")
+  if (!puede(perfil.verComoReal ?? perfil.rol, "verComo")) {
+    return { ok: false, error: "Solo un owner o un admin puede previsualizar otros roles." }
+  }
+
+  const galletas = await cookies()
+  if (!rol || rol === (perfil.verComoReal ?? perfil.rol)) galletas.delete("mg-ver-como")
+  else galletas.set("mg-ver-como", rol, { httpOnly: true, sameSite: "lax", path: "/admin" })
+
+  refrescar()
+  return OK
 }

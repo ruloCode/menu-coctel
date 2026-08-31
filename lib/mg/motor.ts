@@ -47,6 +47,15 @@ function anotaciones(s: Snapshot, id: string): Pick<Evento, "responsable_id" | "
   }
 }
 
+/** Retrocede hasta el sábado o domingo más cercano. Los días de rodaje son de
+ *  fin de semana porque los artistas tienen trabajo entre semana. */
+function finDeSemanaAntes(fecha: string): string {
+  let d = fecha
+  let guard = 0
+  while (D(d).getDay() !== 6 && D(d).getDay() !== 0 && guard < 8) { d = masDias(d, -1); guard++ }
+  return d
+}
+
 /* ---------- hitos derivados de un proyecto ---------- */
 export function eventosProyecto(s: Snapshot, p: Proyecto): Evento[] {
   const R = s.config.reglas
@@ -70,7 +79,16 @@ export function eventosProyecto(s: Snapshot, p: Proyecto): Evento[] {
     push("recDeadline", "hito", evitarFestivos(masDias(p.release, -R.recordingDone)), `🎙 Deadline grabación · ${nm}`)
   }
   push("master", "hito", evitarFestivos(masDias(p.release, -R.masterFinal)), `🎚 Master final · ${nm}`)
-  push("contentDay", "content", evitarFestivos(masDias(p.release, -R.contentDay)), `🎬 Content day · ${nm}`)
+
+  // El content day cuelga del INICIO DE CAMPAÑA, no del release. Es la regla
+  // real de la casa: primero se rueda, ocho días después arranca el pre en
+  // redes. Colgarlo del release (como estaba, a 45 días fijos) ignoraba que un
+  // artista firmado tiene tres meses de campaña y uno no firmado, uno solo:
+  // el mismo offset daba fechas correctas para unos e imposibles para otros.
+  //
+  // Cae en fin de semana a propósito: varios artistas trabajan entre semana y
+  // el rodaje los necesita a ellos.
+  push("contentDay", "content", finDeSemanaAntes(masDias(p.pre_start, -R.contentDay)), `🎬 Content day · ${nm}`)
   push("editing", "hito", evitarFestivos(masDias(p.release, -R.editingDone)), `✂️ Edición lista · ${nm}`)
   push("distro", "hito", masDias(p.release, -R.distributor), `📦 Entrega distribuidor · ${nm}`)
   push("pitch", "hito", masDias(p.release, -R.pitch), `🎯 Pitch editorial · ${nm}`)
@@ -258,6 +276,12 @@ export const eventoHecho = (s: Snapshot, id: string): boolean => !!s.eventosEsta
 export interface Alerta {
   nivel: "critical" | "warn"
   msg: string
+  /** Proyecto al que apunta, si apunta a uno. Permite resolver su líder y
+   *  decir quién la atiende: una alerta sin dueño no la recoge nadie. */
+  proyectoId?: string
+  /** Ámbito cuando no hay un proyecto concreto (Redes, Radar, Roster): dice
+   *  qué equipo la atiende aunque no haya una persona asignada. */
+  ambito?: string
 }
 
 export function calcularAlertas(s: Snapshot): Alerta[] {
@@ -274,53 +298,56 @@ export function calcularAlertas(s: Snapshot): Alerta[] {
     if (p.grabados < p.tracks && recDl < masDias(t, 21)) {
       out.push({
         nivel: recDl < t ? "critical" : "warn",
+        proyectoId: p.id,
         msg: `${nm} — faltan ${p.tracks - p.grabados} canciones y el deadline de grabación es ${fmt(recDl)} (${p.titulo}).`,
       })
     }
     if (p.estado === "negociacion" && p.pre_start < masDias(t, 30)) {
-      out.push({ nivel: "warn", msg: `${nm} — la negociación sigue abierta y su pre-lanzamiento empieza ${fmt(p.pre_start)}. Cerrar acuerdo primero.` })
+      out.push({ nivel: "warn", proyectoId: p.id, msg: `${nm} — la negociación sigue abierta y su pre-lanzamiento empieza ${fmt(p.pre_start)}. Cerrar acuerdo primero.` })
     }
     if (p.estado === "confirmar_estado" && p.pre_start < masDias(t, 30)) {
-      out.push({ nivel: "warn", msg: `${nm} — confirmar estado real de la música antes de ${fmt(p.pre_start)} (inicio de pre).` })
+      out.push({ nivel: "warn", proyectoId: p.id, msg: `${nm} — confirmar estado real de la música antes de ${fmt(p.pre_start)} (inicio de pre).` })
     }
   })
 
   const prox7 = evs.filter((e) => e.fecha >= t && e.fecha <= masDias(t, 7) && !eventoHecho(s, e.id))
   if (prox7.some((e) => e.tipo === "content")) {
-    out.push({ nivel: "warn", msg: "Hay content day en los próximos 7 días — confirmar locación, equipo y llamado." })
+    out.push({ nivel: "warn", ambito: "Audiovisual", msg: "Hay content day en los próximos 7 días — confirmar locación, equipo y llamado." })
   }
 
   const vencidas = s.radar.filter((e) => e.proxima && e.proxima < t)
   if (vencidas.length) {
     out.push({
       nivel: "warn",
+      ambito: "Radar",
       msg: `Radar: ${vencidas.length} medición(es) de redes vencida(s) — ${vencidas.slice(0, 4).map((e) => e.nombre).join(", ")}${vencidas.length > 4 ? "…" : ""}.`,
     })
   }
   const sinDatos = s.radar.filter((e) => !e.mediciones.length).length
   if (sinDatos) {
-    out.push({ nivel: "warn", msg: `Radar: ${sinDatos} fichas sin primera medición de redes. Sin ese dato base no hay crecimiento ni puntaje.` })
+    out.push({ nivel: "warn", ambito: "Radar", msg: `Radar: ${sinDatos} fichas sin primera medición de redes. Sin ese dato base no hay crecimiento ni puntaje.` })
   }
 
   const atrasadas = s.publicaciones.filter((p) => p.fecha < t && p.estado !== "publicado")
   if (atrasadas.length) {
-    out.push({ nivel: "critical", msg: `Redes: ${atrasadas.length} publicación(es) con fecha pasada y sin publicar.` })
+    out.push({ nivel: "critical", ambito: "Redes", msg: `Redes: ${atrasadas.length} publicación(es) con fecha pasada y sin publicar.` })
   }
   const sinArchivo = s.publicaciones.filter(
     (p) => p.fecha >= t && p.fecha <= masDias(t, 7) && !p.asset_url && p.estado !== "publicado",
   )
   if (sinArchivo.length) {
-    out.push({ nivel: "warn", msg: `Redes: ${sinArchivo.length} publicación(es) salen esta semana y todavía no tienen archivo enlazado.` })
+    out.push({ nivel: "warn", ambito: "Redes", msg: `Redes: ${sinArchivo.length} publicación(es) salen esta semana y todavía no tienen archivo enlazado.` })
   }
   const enRevision = s.publicaciones.filter((p) => p.estado === "revision")
   if (enRevision.length) {
-    out.push({ nivel: "warn", msg: `Redes: ${enRevision.length} pieza(s) esperando aprobación. Si llevan más de una semana ahí, se publican o se matan.` })
+    out.push({ nivel: "warn", ambito: "Redes", msg: `Redes: ${enRevision.length} pieza(s) esperando aprobación. Si llevan más de una semana ahí, se publican o se matan.` })
   }
 
   const sinConfirmar = s.artistas.filter((a) => !a.confirmado)
   if (sinConfirmar.length) {
     out.push({
       nivel: "warn",
+      ambito: "Roster",
       msg: `${sinConfirmar.length} nombres artísticos sin confirmar escritura oficial: ${sinConfirmar.map((a) => a.nombre).join(", ")}.`,
     })
   }

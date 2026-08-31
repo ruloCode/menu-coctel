@@ -31,7 +31,10 @@ export const ESTADOS: Record<EstadoProyecto, { label: string; color: string }> =
 export const REGLAS_DEFAULT = {
   recordingDone: 56, // grabación musical terminada (días antes del release)
   masterFinal: 35,   // mezcla/master final
-  contentDay: 45,    // día único de rodaje de contenido
+  // OJO: este es el unico offset que NO cuenta desde el release, sino desde
+  // pre_start. Un dia de rodaje sirve a TODA la campana (tema 1, tema 2 y el
+  // EP), asi que su sitio natural es justo antes de que la campana arranque.
+  contentDay: 8,     // dias ANTES del inicio de campana
   editingDone: 31,   // edición de contenido lista
   distributor: 28,   // entrega al distribuidor
   pitch: 21,         // pitch editorial (Spotify) — el mínimo oficial son 7 días
@@ -41,7 +44,7 @@ export const REGLAS_DEFAULT = {
 export const ETIQUETAS_REGLA: Record<keyof typeof REGLAS_DEFAULT, string> = {
   recordingDone: "Grabación musical terminada",
   masterFinal: "Mezcla y master final",
-  contentDay: "Content day (rodaje)",
+  contentDay: "Content day (días antes del pre)",
   editingDone: "Edición de contenido lista",
   distributor: "Entrega al distribuidor",
   pitch: "Pitch editorial (Spotify)",
@@ -49,11 +52,14 @@ export const ETIQUETAS_REGLA: Record<keyof typeof REGLAS_DEFAULT, string> = {
 }
 
 export const AJUSTES_DEFAULT = {
-  weeklyCap: 8,         // bloques de 4 h planificados por semana (máx real 12 → colchón ~33%)
+  // El estudio abre de lunes a sábado con dos bloques de 4 h al día: uno de
+  // mañana y uno de tarde. Son 12 bloques reales por semana; se planifican 8
+  // para dejar un tercio de colchón para repeticiones, mezclas y urgencias.
+  weeklyCap: 8,
   maxCap: 12,
-  sessionDays: [2, 4, 6], // martes, jueves, sábado
+  sessionDays: [1, 2, 3, 4, 5, 6], // lunes a sábado
   satBlocks: 2,
-  weekdayBlocks: 1,
+  weekdayBlocks: 2,
   partyDay: "lastSat",
   horizonEnd: "2027-12-31",
 }
