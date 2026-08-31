@@ -59,7 +59,7 @@ app/
   ├── layout.tsx                  # Root layout with metadata
   └── globals.css                 # Global styles
 components/
-  ├── site-header.tsx             # Navigation header (7 routes)
+  ├── site-header.tsx             # Navigation header (7 rutas + acceso discreto a /admin)
   ├── site-footer.tsx             # Footer with links + social
   ├── hero-logo.tsx               # Parallax hero with text
   ├── video-hero.tsx              # Full-screen video hero
@@ -121,8 +121,11 @@ middleware.ts                     # Auth middleware for /admin routes
 | `/admin/login` | Acceso al panel (entrar / crear cuenta) |
 | `/admin/mi-trabajo` | Lo asignado a ti: atrasado / hoy / esta semana / despues |
 | `/admin/bandeja` | Avisos: asignaciones, menciones, proyectos en riesgo |
-| `/admin` | Panel · Resumen: KPIs, alertas y proximos eventos |
+| `/admin/area` | Companeros del area, su agenda a 30 dias y el canal del area |
+| `/admin` | Panel · Resumen: KPIs, alertas y proximos eventos. Con rol `produccion` renderiza otra pantalla (`InicioProduccion`) |
 | `/admin/cartera` | Semaforo de salud por proyecto + historial de reportes |
+| `/admin/reuniones` | Actas: del resumen a los compromisos con responsable y fecha |
+| `/admin/reuniones/[id]` | Detalle de un acta: decisiones, riesgos, pendientes, hilo |
 | `/admin/carga` | Compromisos por persona y semana contra su capacidad |
 | `/admin/calendario` | Calendario mensual de todos los eventos derivados |
 | `/admin/timeline` | Gantt de campanas (pre / release / post) |
@@ -182,7 +185,8 @@ lib/mg/
   motor.ts         # eventosProyecto, agendarSesiones, eventosFiestas, calcularAlertas
   radar.ts         # puntaje 0-100 por categoria + recomendacion
   plan.ts          # plan automatico de contenido por lanzamiento, nomenclatura de assets
-  permisos.ts      # matriz de roles (espejo en cliente de lo que impone RLS)
+  permisos.ts      # matriz de roles + lista blanca de secciones por rol y
+                   # guardia de ruta (espejo en cliente de lo que impone RLS)
   datos.ts         # server-only: carga el Snapshot y el perfil actual
 lib/supabase/
   client.ts        # navegador
@@ -201,18 +205,52 @@ exige perfil activo y redirige a `/admin/login`, lo que causaria un bucle.
 
 ### Roles
 
-`owner` · `admin` · `manager` · `contenido` · `artista` · `viewer`
+`owner` · `admin` · `manager` · `contenido` · `produccion` · `artista` · `viewer`
 (ver `lib/mg/permisos.ts` y la tabla en `/admin/equipo`).
 
 La autoridad real es **RLS en Postgres**, no la interfaz. Las policies llaman a
 funciones SECURITY DEFINER (`es_staff()`, `puede_operar()`, `puede_publicar()`,
-`es_admin()`, `mi_artista_id()`) — nunca consultan `perfiles` directamente,
-porque una policy sobre `perfiles` que lea `perfiles` entra en recursion.
+`es_admin()`, `es_produccion()`, `mi_artista_id()`) — nunca consultan `perfiles`
+directamente, porque una policy sobre `perfiles` que lea `perfiles` entra en
+recursion.
 
 Alta de usuarios: cada quien crea su cuenta en `/admin/login`. El trigger
-`handle_new_user` deja al **primer** usuario como `owner` activo y a todos los
-demas como `viewer` inactivo, a la espera de que un admin los habilite. Nadie
-consigue acceso solo por registrarse.
+`handle_new_user` resuelve el alta en tres casos (migracion `014`):
+
+1. **primer** usuario del sistema → `owner` activo;
+2. correo presente en `mg_accesos_previstos` → el rol previsto, **activo**;
+3. cualquier otro → `viewer` **inactivo**, a la espera de que un admin lo habilite.
+
+Nadie consigue acceso solo por registrarse: el caso 2 exige que un admin haya
+escrito antes esa fila, y `mg_accesos_previstos` solo la toca `es_admin()`.
+
+### El rol `produccion` (area de Produccion musical)
+
+Aqui **el rol ES el area**: "mis companeros" son los perfiles activos con este
+mismo rol. No hay tabla de equipos porque no hacen falta jerarquia ni
+pertenencia multiple; el dia que hagan, `VistaArea` es el unico sitio que
+cambia.
+
+Dos cosas lo separan del resto de roles:
+
+- **Panel recortado por lista blanca.** `SECCIONES_POR_ROL` en `permisos.ts` le
+  da 8 de las 17 secciones. El motivo no es de seguridad sino de carga mental:
+  el panel completo esta pensado para quien coordina. Al anadir una seccion
+  nueva hay que decidir si entra en esa lista; por omision **no** entra.
+- **El recorte se impone por ruta, no solo en la navegacion.** El middleware
+  pasa el pathname al layout del panel en la cabecera `x-mg-ruta` (un Server
+  Component no puede leerlo), y el layout redirige con `puedeVerSeccion()`. Sin
+  eso bastaria escribir `/admin/cartera` a mano.
+
+Alcance honesto: `es_staff()` sigue concediendo `SELECT` sobre las tablas
+operativas, porque media docena de policies de la `004` cuelgan de esa funcion.
+Lo que se recorta de verdad es la navegacion y las rutas, no el SELECT crudo.
+El objetivo del rol es que el panel no agobie, no aislar informacion.
+
+Puede **proponer** sesiones de estudio (`mg_eventos_extra.propuesta = true`);
+confirmarlas sigue exigiendo `puede_operar()`, porque la capacidad del estudio
+es un recurso compartido. Lo garantiza el trigger
+`proteger_confirmacion_sesion`.
 
 Para el detalle completo del dominio, las invariantes y el siguiente tramo de
 trabajo, ver **`docs/SUPER-PROMPT.md`**.
@@ -251,7 +289,7 @@ compartida en `lib/mg1-inscripcion.ts`.
 Sin credenciales de Supabase, en desarrollo el route handler cae a
 `.data/mg1-inscripciones.jsonl`; en produccion responde 503 en vez de perder datos.
 
-### Tablas del panel (migraciones `003`-`007`)
+### Tablas del panel (migraciones `003`-`014`)
 
 | Tabla | Para que |
 |-------|----------|
@@ -268,6 +306,12 @@ Sin credenciales de Supabase, en desarrollo el route handler cae a
 | `mg_comentarios` | Hilos polimorficos por `(entidad_tipo, entidad_id)` con @menciones. |
 | `mg_avisos` | Bandeja por persona. Privada: ni un owner ve la ajena. |
 | `mg_bitacora` | Append-only: quien cambio que. Sin policy de UPDATE/DELETE. |
+| `mg_accesos_previstos` | Correo → rol, escrito por un admin ANTES de que la persona se registre. Solo `es_admin()`. |
+
+`mg_comentarios` admite `entidad_tipo = 'area'`, con el `entidad_id` igual al
+nombre del area (`'produccion'`). Asi el canal general de un area reutiliza
+menciones, edicion y moderacion en vez de estrenar una tabla de mensajes: un
+canal es un hilo de comentarios sobre una entidad que no es una fila.
 
 La `003` ademas abre `mg1_inscripciones` a lectura para el staff autenticado:
 la `002` la habia dejado como buzon de solo escritura para el publico, y el
