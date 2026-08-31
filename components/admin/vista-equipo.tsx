@@ -12,6 +12,7 @@ const COLOR_ROL: Record<RolApp, string> = {
   admin: "var(--c-sesion)",
   manager: "var(--c-pre)",
   contenido: "var(--c-content)",
+  produccion: "var(--c-release)",
   artista: "var(--c-fiesta)",
   viewer: "var(--muted)",
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { puedeVerSeccion, seccionInicial } from "@/lib/mg/permisos"
 import "../panel.css"
 import { createClient } from "@/lib/supabase/server"
 import { cargarAvisos, cargarSnapshot, perfilActual } from "@/lib/mg/datos"
@@ -39,6 +41,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </div>
     )
+  }
+
+  // Guardia de sección. La navegación ya oculta lo que no le toca al rol, pero
+  // eso es cosmético: sin esto, escribir /admin/cartera a mano bastaría.
+  const ruta = (await headers()).get("x-mg-ruta") ?? "/admin"
+  const slug = ruta.replace(/^\/admin\/?/, "").split("/")[0]
+
+  if (!puedeVerSeccion(perfil.rol, slug)) {
+    redirect(seccionInicial(perfil.rol))
   }
 
   // Contadores para las píldoras de la navegación: lo que exige atención hoy.

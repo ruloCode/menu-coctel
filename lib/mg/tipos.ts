@@ -1,7 +1,12 @@
 // Modelo de dominio del panel MG. Los ids son strings ('a1', 'p3') porque el
 // motor de eventos compone ids derivados del tipo `p3:release`.
 
-export type RolApp = "owner" | "admin" | "manager" | "contenido" | "artista" | "viewer"
+export type RolApp = "owner" | "admin" | "manager" | "contenido" | "produccion" | "artista" | "viewer"
+
+/** Areas de trabajo. Hoy solo Produccion musical tiene rol propio; el tipo
+ *  existe para que el canal y la vista de companeros no dependan de strings
+ *  sueltos si manana aparece otra area. */
+export type Area = "produccion"
 
 export interface Perfil {
   id: string
@@ -227,7 +232,10 @@ export interface EntradaBitacora {
   created_at: string
 }
 
-export type EntidadComentable = "evento" | "proyecto" | "publicacion" | "radar" | "reunion"
+// 'area' no es una fila de ninguna tabla: el entidad_id es el nombre del area
+// ('produccion'). Asi el canal general de un area reutiliza menciones, edicion
+// y moderacion de comentarios en vez de estrenar una tabla de mensajes.
+export type EntidadComentable = "evento" | "proyecto" | "publicacion" | "radar" | "reunion" | "area"
 
 export interface Comentario {
   id: string

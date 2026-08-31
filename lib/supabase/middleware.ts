@@ -3,7 +3,13 @@ import { NextResponse, type NextRequest } from "next/server"
 
 // Refresca el token en cada request y decide si la sesion puede entrar a /admin.
 export async function actualizarSesion(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  // Un Server Component no puede leer el pathname. El layout del panel lo
+  // necesita para saber que seccion se pidio y decidir si el rol la tiene
+  // permitida, asi que se lo pasamos por cabecera de request.
+  const cabeceras = new Headers(request.headers)
+  cabeceras.set("x-mg-ruta", request.nextUrl.pathname)
+
+  let response = NextResponse.next({ request: { headers: cabeceras } })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +21,7 @@ export async function actualizarSesion(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
+          response = NextResponse.next({ request: { headers: cabeceras } })
           cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },

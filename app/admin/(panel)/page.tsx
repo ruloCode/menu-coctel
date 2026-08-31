@@ -6,11 +6,19 @@ import { TIPOS_EVENTO, ESTADOS } from "@/lib/mg/constantes"
 import { puede } from "@/lib/mg/permisos"
 import { Kpi, Tag, Vacio } from "@/components/admin/ui"
 import QuePaso from "@/components/admin/que-paso"
+import InicioProduccion from "@/components/admin/inicio-produccion"
 
 export const dynamic = "force-dynamic"
 
 export default async function ResumenPage() {
   const [s, perfil] = await Promise.all([cargarSnapshot(), perfilActual()])
+
+  // El área de Producción entra a otra pantalla: el Resumen general es un
+  // tablero de gestión y para quien compone es ruido. Ver InicioProduccion.
+  if (perfil?.rol === "produccion") {
+    return <InicioProduccion snapshot={s} yo={perfil} />
+  }
+
   const t = hoy()
 
   const eventos = todosLosEventos(s)
