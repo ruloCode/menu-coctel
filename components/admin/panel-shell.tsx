@@ -7,6 +7,7 @@ import { seccionesVisibles, etiquetaRol } from "@/lib/mg/permisos"
 import type { Perfil } from "@/lib/mg/tipos"
 import { cerrarSesion } from "@/app/admin/acciones"
 import MiCuenta from "./mi-cuenta"
+import VerComo, { AvisoVerComo } from "./ver-como"
 
 const CLAVE_TEMA = "mg-panel-tema"
 
@@ -98,7 +99,13 @@ export default function PanelShell({
           </div>
         </aside>
 
-        <main className="main">{children}</main>
+        <main className="main">
+          <div className="barra-vista">
+            <VerComo perfil={perfil} />
+          </div>
+          <AvisoVerComo perfil={perfil} />
+          {children}
+        </main>
       </div>
 
       {miCuenta ? <MiCuenta perfil={perfil} onClose={() => setMiCuenta(false)} /> : null}

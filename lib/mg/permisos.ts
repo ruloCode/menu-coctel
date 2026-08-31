@@ -1,37 +1,41 @@
-import type { RolApp } from "./tipos"
+import type { Area, RolApp } from "./tipos"
 
 // Espejo en cliente de lo que ya impone RLS en Postgres. Sirve para no
 // mostrar botones que van a fallar; la autoridad real siempre es la base de
-// datos (migraciones 003, 004 y 013), nunca este archivo.
+// datos (migraciones 003, 004, 013 y 015), nunca este archivo.
 
 export const ROLES: { valor: RolApp; label: string; desc: string }[] = [
-  { valor: "owner",      label: "Owner",       desc: "Control total, incluida la gestión del equipo y el traspaso de la cuenta." },
-  { valor: "admin",      label: "Admin",       desc: "Todo el panel y la gestión del equipo, salvo tocar al owner." },
-  { valor: "manager",    label: "Manager",     desc: "Opera el calendario: artistas, proyectos, estudio, fiestas y radar." },
-  { valor: "contenido",  label: "Contenido",   desc: "Módulo de Redes: crea y edita publicaciones. No cambia el plan de lanzamientos." },
-  { valor: "produccion", label: "Producción musical", desc: "Área de composición, arreglos y grabación. Ve su trabajo, los proyectos de producción y el calendario del área; propone sesiones de estudio." },
-  { valor: "artista",    label: "Artista",     desc: "Ve el calendario y aprueba o pide cambios en las piezas de su propia cuenta." },
-  { valor: "viewer",     label: "Solo lectura", desc: "Ve todo el panel sin poder modificar nada." },
+  { valor: "owner",       label: "Owner",       desc: "Control total, incluida la gestión del equipo y el traspaso de la cuenta." },
+  { valor: "admin",       label: "Admin",       desc: "Todo el panel y la gestión del equipo, salvo tocar al owner." },
+  { valor: "manager",     label: "Manager",     desc: "Opera el calendario: artistas, proyectos, estudio, fiestas y radar. Aprueba los cambios que pide su área." },
+  { valor: "contenido",   label: "Contenido",   desc: "Módulo de Redes: crea y edita publicaciones. No cambia el plan de lanzamientos." },
+  { valor: "produccion",  label: "Producción musical", desc: "Composición, arreglos y grabación. Ve su trabajo, los proyectos de producción y el calendario del área; propone sesiones de estudio." },
+  { valor: "audiovisual", label: "Producción audiovisual", desc: "Guion, rodaje y edición. Ve su trabajo, el calendario de contenido y las piezas de cada lanzamiento." },
+  { valor: "artista",     label: "Artista",     desc: "Ve el calendario y aprueba o pide cambios en las piezas de su propia cuenta." },
+  { valor: "viewer",      label: "Solo lectura", desc: "Ve todo el panel sin poder modificar nada." },
 ]
 
 export type Permiso =
   | "operar"         // artistas, proyectos, calendario, estudio, fiestas, radar
   | "publicar"       // crear y editar publicaciones
   | "aprobarPropio"  // aprobar solo lo de su cuenta de artista
+  | "aprobarCambios" // decidir sobre lo que pide un área: mover fechas y demás
   | "proponerSesion" // sembrar una sesion de estudio que otro confirma
-  | "areaProduccion" // canal y compañeros del área de Producción musical
+  | "area"           // canal y compañeros de su área de trabajo
+  | "verComo"        // previsualizar el panel de otro rol
   | "reglas"         // cambiar las reglas del sistema
   | "equipo"         // invitar, cambiar roles, desactivar cuentas
   | "exportar"
 
 const MATRIZ: Record<RolApp, Permiso[]> = {
-  owner:      ["operar", "publicar", "proponerSesion", "areaProduccion", "reglas", "equipo", "exportar"],
-  admin:      ["operar", "publicar", "proponerSesion", "areaProduccion", "reglas", "equipo", "exportar"],
-  manager:    ["operar", "publicar", "proponerSesion", "areaProduccion", "exportar"],
-  contenido:  ["publicar", "exportar"],
-  produccion: ["proponerSesion", "areaProduccion"],
-  artista:    ["aprobarPropio"],
-  viewer:     [],
+  owner:       ["operar", "publicar", "aprobarCambios", "proponerSesion", "area", "verComo", "reglas", "equipo", "exportar"],
+  admin:       ["operar", "publicar", "aprobarCambios", "proponerSesion", "area", "verComo", "reglas", "equipo", "exportar"],
+  manager:     ["operar", "publicar", "aprobarCambios", "proponerSesion", "area", "exportar"],
+  contenido:   ["publicar", "area", "exportar"],
+  produccion:  ["proponerSesion", "area"],
+  audiovisual: ["publicar", "area"],
+  artista:     ["aprobarPropio"],
+  viewer:      [],
 }
 
 export const puede = (rol: RolApp | null | undefined, permiso: Permiso): boolean =>
@@ -40,13 +44,33 @@ export const puede = (rol: RolApp | null | undefined, permiso: Permiso): boolean
 export const etiquetaRol = (rol: RolApp): string =>
   ROLES.find((r) => r.valor === rol)?.label ?? rol
 
-/** Secciones del panel visibles para cada rol.
- *  El primer grupo es personal: lo que le toca a quien abrió el panel. Va
- *  arriba a propósito — es la razón por la que alguien vuelve mañana. */
+/* ============================================================
+   Áreas de trabajo
+   ============================================================
+   El rol ES el área. Quien opera no pertenece a una sola, así que ve todas. */
+
+export const AREAS: { valor: Area; label: string; desc: string }[] = [
+  { valor: "produccion",  label: "Producción musical",    desc: "Composición, arreglos y grabación." },
+  { valor: "audiovisual", label: "Producción audiovisual", desc: "Guion, rodaje y edición." },
+]
+
+export const areaDeRol = (rol: RolApp | null | undefined): Area | null =>
+  rol === "produccion" ? "produccion" : rol === "audiovisual" ? "audiovisual" : null
+
+export const etiquetaArea = (a: Area): string => AREAS.find((x) => x.valor === a)?.label ?? a
+
+/* ============================================================
+   Secciones del panel
+   ============================================================ */
+
+/** El primer grupo es personal: lo que le toca a quien abrió el panel. Va
+ *  arriba a propósito — es la razón por la que alguien vuelve mañana.
+ *  Zeri encabeza porque es la puerta de entrada: preguntar antes que buscar. */
 export const SECCIONES = [
+  { slug: "zeri",       label: "Zeri",               icon: "◆", color: "var(--brand)",           grupo: "Lo mío" },
   { slug: "mi-trabajo",  label: "Mi trabajo",          icon: "◆", color: "var(--brand)",           grupo: "Lo mío" },
   { slug: "bandeja",     label: "Bandeja",             icon: "◉", color: "var(--c-sesion)",        grupo: "Lo mío" },
-  { slug: "area",        label: "Mi área",             icon: "◈", color: "var(--c-content)",       grupo: "Lo mío", permiso: "areaProduccion" as Permiso },
+  { slug: "area",        label: "Mi área",             icon: "◈", color: "var(--c-content)",       grupo: "Lo mío", permiso: "area" as Permiso },
   { slug: "",            label: "Resumen",             icon: "◍", color: "var(--ink)",             grupo: "Operación" },
   { slug: "cartera",     label: "Cartera y salud",     icon: "▣", color: "var(--good)",            grupo: "Operación" },
   { slug: "reuniones",   label: "Reuniones",           icon: "▢", color: "var(--c-hito)",          grupo: "Operación" },
@@ -67,15 +91,20 @@ export const SECCIONES = [
 /** Roles con panel recortado: en vez de "todo menos lo que el permiso niega",
  *  se les da una lista corta y explícita.
  *
- *  El motivo no es de seguridad sino de carga mental. El panel completo son 17
- *  secciones pensadas para quien coordina; a quien compone y arregla, la mitad
- *  de eso le estorba. Lo que no está aquí no aparece en la navegación Y además
- *  se bloquea por ruta en el layout — si no, bastaría escribir la URL.
+ *  El motivo no es de seguridad sino de carga mental. El panel completo son 19
+ *  secciones pensadas para quien coordina; a quien compone, arregla o escribe
+ *  guiones, la mitad le estorba. Lo que no está aquí no aparece en la
+ *  navegación Y además se bloquea por ruta en el layout.
  *
- *  Al añadir una sección nueva al panel, revisar si pertenece a estas listas.
- *  Por omisión NO se añade: el recorte falla del lado seguro. */
+ *  Al añadir una sección nueva, revisar si pertenece a estas listas. Por
+ *  omisión NO se añade: el recorte falla del lado seguro. */
 export const SECCIONES_POR_ROL: Partial<Record<RolApp, string[]>> = {
-  produccion: ["", "mi-trabajo", "bandeja", "area", "calendario", "estudio", "artistas", "reuniones"],
+  produccion: ["zeri", "mi-trabajo", "bandeja", "area", "", "calendario", "estudio", "artistas", "reuniones"],
+  // Audiovisual no ve Estudio (es grabación de audio) pero sí Redes, que es
+  // donde vive el calendario de contenido que ellos producen.
+  audiovisual: ["zeri", "mi-trabajo", "bandeja", "area", "", "calendario", "redes", "artistas", "reuniones"],
+  contenido: ["zeri", "mi-trabajo", "bandeja", "area", "", "calendario", "redes", "artistas"],
+  artista: ["zeri", "mi-trabajo", "bandeja", "", "calendario"],
 }
 
 export const seccionesVisibles = (rol: RolApp | null | undefined) => {

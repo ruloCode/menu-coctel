@@ -1,12 +1,15 @@
 // Modelo de dominio del panel MG. Los ids son strings ('a1', 'p3') porque el
 // motor de eventos compone ids derivados del tipo `p3:release`.
 
-export type RolApp = "owner" | "admin" | "manager" | "contenido" | "produccion" | "artista" | "viewer"
+export type RolApp =
+  | "owner" | "admin" | "manager" | "contenido"
+  | "produccion" | "audiovisual"
+  | "artista" | "viewer"
 
-/** Areas de trabajo. Hoy solo Produccion musical tiene rol propio; el tipo
- *  existe para que el canal y la vista de companeros no dependan de strings
- *  sueltos si manana aparece otra area. */
-export type Area = "produccion"
+/** Areas de trabajo. Cada area es un rol: no hay jerarquia ni pertenencia
+ *  multiple, asi que una tabla de equipos no ganaria nada. "Mis companeros"
+ *  son los perfiles activos con el mismo rol. */
+export type Area = "produccion" | "audiovisual"
 
 export interface Perfil {
   id: string
@@ -20,6 +23,10 @@ export interface Perfil {
   capacidad_semanal: number
   ultimo_acceso: string | null
   created_at: string
+  /** Solo en previsualizacion: el rol REAL de quien mira. Lo pone perfilActual
+   *  cuando un owner o admin esta usando "Ver como". Su presencia es lo que
+   *  dispara el aviso de que lo que se ve no es el panel propio. */
+  verComoReal?: RolApp
 }
 
 export type Prioridad = "baja" | "normal" | "alta" | "urgente"

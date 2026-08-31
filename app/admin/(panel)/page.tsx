@@ -7,6 +7,8 @@ import { puede } from "@/lib/mg/permisos"
 import { Kpi, Tag, Vacio } from "@/components/admin/ui"
 import QuePaso from "@/components/admin/que-paso"
 import InicioProduccion from "@/components/admin/inicio-produccion"
+import InicioAudiovisual from "@/components/admin/inicio-audiovisual"
+import Pulso from "@/components/admin/pulso"
 
 export const dynamic = "force-dynamic"
 
@@ -17,6 +19,12 @@ export default async function ResumenPage() {
   // tablero de gestión y para quien compone es ruido. Ver InicioProduccion.
   if (perfil?.rol === "produccion") {
     return <InicioProduccion snapshot={s} yo={perfil} />
+  }
+
+  // Audiovisual trabaja sobre piezas y rodajes, no sobre canciones: su inicio
+  // ordena por content day en vez de por release.
+  if (perfil?.rol === "audiovisual") {
+    return <InicioAudiovisual snapshot={s} yo={perfil} />
   }
 
   const t = hoy()
@@ -49,6 +57,10 @@ export default async function ResumenPage() {
         ) : null}
       </div>
 
+      {/* Lo primero es cuánto se lleva hecho, no cuánto falta: seis cifras de
+          faltantes como primera lectura ponen a la defensiva. */}
+      <Pulso snapshot={s} />
+
       {mios && urgente > 0 ? (
         <div className="banner" style={{ borderColor: mios.atrasado.length ? "var(--critical)" : "var(--baseline)" }}>
           <span aria-hidden>{mios.atrasado.length ? "🔴" : "📌"}</span>
@@ -62,6 +74,36 @@ export default async function ResumenPage() {
           <Link className="btn sm" href="/admin/mi-trabajo" style={{ marginLeft: "auto" }}>Ver mi trabajo</Link>
         </div>
       ) : null}
+
+      {alertas.length ? (
+        <div className="card">
+          <h2>⚠ Alertas <span className="muted small">({alertas.length})</span></h2>
+          {alertas.map((a, i) => {
+            const p = a.proyectoId ? s.proyectos.find((x) => x.id === a.proyectoId) : null
+            const lider = p?.lider_id ? s.equipo.find((m) => m.id === p.lider_id) : null
+            const dueno = lider?.nombre ?? a.ambito ?? null
+
+            return (
+              <div key={i} className={a.nivel === "critical" ? "alert critical" : "alert"}>
+                <span aria-hidden>{a.nivel === "critical" ? "🔴" : "🟡"}</span>
+                <span>{a.msg}</span>
+                {/* Una alerta sin dueño no la recoge nadie: si el proyecto tiene
+                    líder se nombra, y si no, al menos se dice qué equipo la atiende. */}
+                <span className="alert-dueno small" style={{ marginLeft: "auto" }}>
+                  {dueno
+                    ? <>{lider ? "Responsable" : "Área"}: <b>{dueno}</b></>
+                    : <span className="muted">sin responsable</span>}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="card">
+          <h2>Alertas</h2>
+          <div className="alert good"><span aria-hidden>✅</span><span>Nada exige atención inmediata.</span></div>
+        </div>
+      )}
 
       <div className="kpis">
         <Kpi valor={activos.length} label="Proyectos activos" />
@@ -100,23 +142,6 @@ export default async function ResumenPage() {
         </div>
       ) : null}
 
-      {alertas.length ? (
-        <div className="card">
-          <h2>⚠ Alertas <span className="muted small">({alertas.length})</span></h2>
-          {alertas.map((a, i) => (
-            <div key={i} className={a.nivel === "critical" ? "alert critical" : "alert"}>
-              <span aria-hidden>{a.nivel === "critical" ? "🔴" : "🟡"}</span>
-              <span>{a.msg}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="card">
-          <h2>Alertas</h2>
-          <div className="alert good"><span aria-hidden>✅</span><span>Nada exige atención inmediata.</span></div>
-        </div>
-      )}
-
       <div className="card">
         <h2>Próximos 14 eventos</h2>
         {proximos.length === 0 ? (
@@ -127,19 +152,32 @@ export default async function ResumenPage() {
           <div className="tabla-wrap">
             <table>
               <thead>
-                <tr><th>Fecha</th><th>Faltan</th><th>Tipo</th><th>Evento</th></tr>
+                <tr><th>Fecha</th><th>Faltan</th><th>Tipo</th><th>Evento</th><th>Responsable</th></tr>
               </thead>
               <tbody>
                 {proximos.map((e) => {
                   const dias = diasEntre(t, e.fecha)
+                  // Quién lo tiene en SU calendario. Si nadie lo tiene asignado
+                  // se dice, porque un evento sin dueño es el que se cae.
+                  const quien = e.responsable_id ? s.equipo.find((m) => m.id === e.responsable_id) : null
+                  const p = e.proyecto_id ? s.proyectos.find((x) => x.id === e.proyecto_id) : null
+                  const lider = !quien && p?.lider_id ? s.equipo.find((m) => m.id === p.lider_id) : null
+
                   return (
                     <tr key={e.id}>
                       <td className="mono" style={{ whiteSpace: "nowrap" }}>{fmt(e.fecha)}</td>
                       <td className={dias <= 7 ? "warnrow mono" : "mono muted"} style={{ whiteSpace: "nowrap" }}>
                         {dias === 0 ? "hoy" : `${dias} d`}
                       </td>
-                      <td><Tag color={TIPOS_EVENTO[e.tipo].color}>{TIPOS_EVENTO[e.tipo].label}</Tag></td>
+                      <td><Tag suave color={TIPOS_EVENTO[e.tipo].color}>{TIPOS_EVENTO[e.tipo].label}</Tag></td>
                       <td>{e.etiqueta}</td>
+                      <td className="small" style={{ whiteSpace: "nowrap" }}>
+                        {quien
+                          ? quien.nombre
+                          : lider
+                            ? <span className="muted">{lider.nombre} <span style={{ fontSize: 10 }}>(líder)</span></span>
+                            : <span className="muted">sin asignar</span>}
+                      </td>
                     </tr>
                   )
                 })}
@@ -164,7 +202,7 @@ export default async function ResumenPage() {
                   <tr key={p.id}>
                     <td>{artistaPorId(s, p.artista_id)?.nombre}</td>
                     <td>{p.titulo}</td>
-                    <td><Tag color={ESTADOS[p.estado].color}>{ESTADOS[p.estado].label}</Tag></td>
+                    <td><Tag suave color={ESTADOS[p.estado].color}>{ESTADOS[p.estado].label}</Tag></td>
                     <td className="mono">{p.grabados}/{p.tracks}</td>
                     <td className="mono" style={{ whiteSpace: "nowrap" }}>{fmt(p.release)}</td>
                   </tr>

@@ -17,8 +17,30 @@ export async function perfilActual(): Promise<Perfil | null> {
     .maybeSingle()
 
   if (!data || !data.activo) return null
-  return data as Perfil
+  const perfil = data as Perfil
+
+  // "Ver como": owner y admin pueden previsualizar el panel de otro rol para
+  // saber qué ve cada equipo. Solo cambia el ROL que la interfaz usa para
+  // decidir qué mostrar; la identidad, el id y la sesión siguen siendo los
+  // reales, así que RLS sigue respondiendo al rol de verdad. Es una lente,
+  // no una suplantación.
+  //
+  // El permiso se comprueba aquí, en el servidor, contra el rol REAL leído de
+  // la base: una cookie manipulada por alguien sin permiso no hace nada.
+  if (perfil.rol === "owner" || perfil.rol === "admin") {
+    const cookies = await import("next/headers").then((m) => m.cookies())
+    const visto = cookies.get("mg-ver-como")?.value
+    if (visto && visto !== perfil.rol && ROLES_VALIDOS.has(visto)) {
+      return { ...perfil, rol: visto as Perfil["rol"], verComoReal: perfil.rol }
+    }
+  }
+
+  return perfil
 }
+
+const ROLES_VALIDOS = new Set([
+  "owner", "admin", "manager", "contenido", "produccion", "audiovisual", "artista", "viewer",
+])
 
 /**
  * Carga todo lo que el motor de eventos necesita para derivar el calendario.
