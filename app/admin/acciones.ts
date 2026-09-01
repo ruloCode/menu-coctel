@@ -5,9 +5,9 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { perfilActual } from "@/lib/mg/datos"
-import { puede, type Permiso } from "@/lib/mg/permisos"
+import { PERMISOS_EXTRA, SECCIONES, puede, tieneExtra, type Permiso } from "@/lib/mg/permisos"
 import { D, evitarFestivos, fmt, hoy, masDias } from "@/lib/mg/fechas"
-import type { EstadoProyecto, FichaRadar, Publicacion, TipoEvento } from "@/lib/mg/tipos"
+import type { EstadoProyecto, FichaRadar, Perfil, Publicacion, TipoEvento } from "@/lib/mg/tipos"
 import { sanearDisponibilidad, type Disponibilidad } from "@/lib/mg1-disponibilidad"
 
 export interface Resultado {
@@ -24,10 +24,17 @@ const refrescar = () => revalidatePath("/admin", "layout")
  * Puerta unica de todas las mutaciones. RLS ya bloquea lo que no corresponde,
  * pero comprobarlo aqui devuelve un mensaje util en vez de un error de Postgres.
  */
-async function exigir(permiso: Permiso) {
+/**
+ * Un permiso de la matriz, o una comprobación a medida cuando el acceso no
+ * depende solo del rol (una concesión individual de la 017, por ejemplo).
+ */
+type Guardia = Permiso | ((perfil: Perfil) => boolean)
+
+async function exigir(guardia: Guardia) {
   const perfil = await perfilActual()
   if (!perfil) redirect("/admin/login")
-  if (!puede(perfil.rol, permiso)) {
+  const permitido = typeof guardia === "function" ? guardia(perfil) : puede(perfil.rol, guardia)
+  if (!permitido) {
     throw new Error("Tu rol no tiene permiso para esta acción.")
   }
   return perfil
@@ -44,10 +51,10 @@ async function bitacora(mensaje: string) {
 }
 
 /** Envuelve una mutacion: valida permiso, corre, registra y revalida. */
-async function mutar(permiso: Permiso, fn: () => Promise<string | null>): Promise<Resultado> {
+async function mutar(guardia: Guardia, fn: (perfil: Perfil) => Promise<string | null>): Promise<Resultado> {
   try {
-    await exigir(permiso)
-    const msg = await fn()
+    const perfil = await exigir(guardia)
+    const msg = await fn(perfil)
     if (msg) await bitacora(msg)
     refrescar()
     return OK
@@ -660,6 +667,42 @@ export async function vincularArtista(perfilId: string, artistaId: string | null
   })
 }
 
+/**
+ * Concede o retira las excepciones personales de una cuenta. Sustituye ambas
+ * listas enteras: el editor manda el estado completo, no un diff, porque así
+ * dos admins que guarden a la vez no se dejan mutuamente medio ajuste.
+ *
+ * Se sanean contra los catálogos de permisos.ts: un slug o una clave que no
+ * existan no llegan a la base. No es paranoia sobre el formulario, es que un
+ * permiso mal escrito quedaría guardado para siempre sin conceder nada y sin
+ * que nadie entienda por qué.
+ */
+export async function guardarAccesoIndividual(
+  perfilId: string,
+  secciones: string[],
+  permisos: string[],
+) {
+  return mutar("equipo", async () => {
+    const secc = [...new Set(secciones)].filter((x) => SECCIONES.some((s) => s.slug === x && s.slug !== ""))
+    const perm = [...new Set(permisos)].filter((x) => PERMISOS_EXTRA.some((p) => p.clave === x))
+
+    const supabase = await createClient()
+    const { data: p } = await supabase.from("perfiles").select("nombre, email").eq("id", perfilId).single()
+
+    // proteger_perfil (017) bloquea que alguien se conceda esto a sí mismo;
+    // aquí solo se traduce el error a algo legible.
+    const { error } = await supabase
+      .from("perfiles")
+      .update({ secciones_extra: secc, permisos_extra: perm })
+      .eq("id", perfilId)
+    if (error) throw new Error(error.message)
+
+    const quien = p?.nombre || p?.email || perfilId
+    const etiquetas = (xs: string[]) => (xs.length ? xs.join(", ") : "nada")
+    return `🎛 Accesos individuales de ${quien} → secciones: ${etiquetas(secc)}; permisos: ${etiquetas(perm)}.`
+  })
+}
+
 export async function actualizarMiPerfil(nombre: string) {
   const perfil = await perfilActual()
   if (!perfil) redirect("/admin/login")
@@ -674,11 +717,23 @@ export async function actualizarMiPerfil(nombre: string) {
    MG1
    ============================================================ */
 
+/** Quien opera, y además quien lleva la conversación con los inscritos por
+ *  concesión individual. Espejo de puede_contactar_mg1() en la 017. */
+const contactaMg1 = (p: Perfil) => puede(p.rol, "operar") || tieneExtra(p, "mg1:contactar")
+
 export async function actualizarInscripcion(
   id: string,
   campos: { estado?: string; notas?: string; disponibilidad?: Disponibilidad },
 ) {
-  return mutar("operar", async () => {
+  return mutar(contactaMg1, async (perfil) => {
+    // El estado es el veredicto de la curaduría; anotar lo que dijo el
+    // concursante, no. Quien solo tiene 'mg1:contactar' escribe lo segundo.
+    // El trigger proteger_curaduria_mg1 lo repite en la base: esto es para
+    // que el mensaje sea legible, no para que sea seguro.
+    if (campos.estado !== undefined && !puede(perfil.rol, "operar")) {
+      throw new Error("Cambiar el estado es cosa de la curaduría. Tú puedes anotar disponibilidad y notas.")
+    }
+
     const supabase = await createClient()
 
     const { disponibilidad, ...resto } = campos

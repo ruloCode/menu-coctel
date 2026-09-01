@@ -1,10 +1,15 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { ROLES, etiquetaRol } from "@/lib/mg/permisos"
+import { Fragment, useState, useTransition } from "react"
+import { PERMISOS_EXTRA, ROLES, etiquetaRol, seccionesConcedibles } from "@/lib/mg/permisos"
 import { fmt } from "@/lib/mg/fechas"
 import type { Artista, Perfil, RolApp } from "@/lib/mg/tipos"
-import { cambiarEstadoCuenta, cambiarRol, vincularArtista } from "@/app/admin/acciones"
+import {
+  cambiarEstadoCuenta,
+  cambiarRol,
+  guardarAccesoIndividual,
+  vincularArtista,
+} from "@/app/admin/acciones"
 import { Tag, Vacio } from "./ui"
 
 const COLOR_ROL: Record<RolApp, string> = {
@@ -123,6 +128,32 @@ export default function VistaEquipo({
           Un rol <b>artista</b> solo sirve vinculado a una ficha del roster: sin vínculo, no puede aprobar nada.
         </p>
       </div>
+
+      <div className="card">
+        <h2>Ajustes individuales</h2>
+        <p className="small">
+          El rol es la base y casi siempre basta. Cuando a una persona le falta exactamente una cosa,
+          el botón <b>Personalizar</b> de la tabla se la concede sin subirla de rol ni inventar un rol
+          nuevo. Dos reglas que no cambian: una sección concedida <b>solo añade navegación</b> —los
+          botones de dentro siguen preguntando por su permiso—, y <b>nadie puede concederse nada a sí
+          mismo</b>, ni el owner.
+        </p>
+        <div className="tabla-wrap">
+          <table>
+            <thead><tr><th>Permiso concedible</th><th>Qué habilita</th></tr></thead>
+            <tbody>
+              {PERMISOS_EXTRA.map((x) => (
+                <tr key={x.clave}>
+                  <td style={{ width: 220 }}>
+                    <b>{x.label}</b><br /><span className="muted small mono">{x.clave}</span>
+                  </td>
+                  <td className="small">{x.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
   )
 }
@@ -137,17 +168,24 @@ function TablaMiembros({
   correr: (fn: () => Promise<{ ok: boolean; error?: string }>) => void
   yo: Perfil
 }) {
+  const [abierto, setAbierto] = useState<string | null>(null)
+
   return (
     <div className="tabla-wrap">
       <table>
         <thead>
-          <tr><th>Persona</th><th>Rol</th><th>Artista vinculado</th><th>Último acceso</th><th style={{ textAlign: "right" }}>Acceso</th></tr>
+          <tr>
+            <th>Persona</th><th>Rol</th><th>Artista vinculado</th><th>Individual</th>
+            <th>Último acceso</th><th style={{ textAlign: "right" }}>Acceso</th>
+          </tr>
         </thead>
         <tbody>
           {perfiles.map((p) => {
             const editable = puedeTocar(p)
+            const extras = (p.secciones_extra?.length ?? 0) + (p.permisos_extra?.length ?? 0)
             return (
-              <tr key={p.id}>
+              <Fragment key={p.id}>
+              <tr>
                 <td>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span className="avatar" style={{ background: COLOR_ROL[p.rol] }} aria-hidden>
@@ -192,6 +230,19 @@ function TablaMiembros({
                     <span className="muted small">—</span>
                   )}
                 </td>
+                <td>
+                  {editable ? (
+                    <button
+                      className={extras ? "btn sm primary" : "btn sm"}
+                      aria-expanded={abierto === p.id}
+                      onClick={() => setAbierto(abierto === p.id ? null : p.id)}
+                    >
+                      {extras ? `Personalizado (${extras})` : "Personalizar"}
+                    </button>
+                  ) : (
+                    <span className="muted small">{extras ? `${extras} ajuste${extras > 1 ? "s" : ""}` : "—"}</span>
+                  )}
+                </td>
                 <td className="muted small mono" style={{ whiteSpace: "nowrap" }}>
                   {p.ultimo_acceso ? fmt(p.ultimo_acceso.slice(0, 10)) : "nunca"}
                 </td>
@@ -209,10 +260,118 @@ function TablaMiembros({
                   )}
                 </td>
               </tr>
+
+              {abierto === p.id && editable ? (
+                <tr>
+                  <td colSpan={6} style={{ background: "var(--page)" }}>
+                    <EditorAccesos
+                      perfil={p}
+                      pendiente={pendiente}
+                      correr={correr}
+                      onCerrar={() => setAbierto(null)}
+                    />
+                  </td>
+                </tr>
+              ) : null}
+              </Fragment>
             )
           })}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+/**
+ * Excepciones personales de una cuenta. Manda siempre el estado completo de
+ * las dos listas, no un diff: es lo que hace que guardar dos veces seguidas,
+ * o desde dos pestañas, dé el mismo resultado.
+ */
+function EditorAccesos({
+  perfil, pendiente, correr, onCerrar,
+}: {
+  perfil: Perfil
+  pendiente: boolean
+  correr: (fn: () => Promise<{ ok: boolean; error?: string }>) => void
+  onCerrar: () => void
+}) {
+  const concedibles = seccionesConcedibles(perfil.rol)
+  const [secciones, setSecciones] = useState<string[]>(perfil.secciones_extra ?? [])
+  const [permisos, setPermisos] = useState<string[]>(perfil.permisos_extra ?? [])
+
+  const alternarSeccion = (slug: string) =>
+    setSecciones(secciones.includes(slug) ? secciones.filter((x) => x !== slug) : [...secciones, slug])
+
+  const alternarPermiso = (clave: string, seccion: string) => {
+    const quitando = permisos.includes(clave)
+    setPermisos(quitando ? permisos.filter((x) => x !== clave) : [...permisos, clave])
+
+    // Un permiso sin la sección donde se ejerce no sirve de nada: se conceden
+    // juntos. Al retirarlo la sección se queda, por si se dio a propósito.
+    if (!quitando && !secciones.includes(seccion) && concedibles.some((s) => s.slug === seccion)) {
+      setSecciones([...secciones, seccion])
+    }
+  }
+
+  return (
+    <div style={{ padding: "12px 4px", display: "grid", gap: 14 }}>
+      <div>
+        <b className="small">Secciones que verá además de las de su rol</b>
+        {concedibles.length === 0 ? (
+          <p className="small muted" style={{ margin: "4px 0 0" }}>
+            Con el rol <b>{etiquetaRol(perfil.rol)}</b> ya ve todo el panel: no hay nada que añadir.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+            {concedibles.map((s) => (
+              <label key={s.slug} className="chipbtn" style={{ cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={secciones.includes(s.slug)}
+                  onChange={() => alternarSeccion(s.slug)}
+                />{" "}
+                {s.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <b className="small">Permisos concedidos a esta persona</b>
+        <div style={{ display: "grid", gap: 6, marginTop: 6 }}>
+          {PERMISOS_EXTRA.map((x) => (
+            <label key={x.clave} style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={permisos.includes(x.clave)}
+                onChange={() => alternarPermiso(x.clave, x.seccion)}
+                style={{ marginTop: 3 }}
+              />
+              <span>
+                <b className="small">{x.label}</b>
+                <br />
+                <span className="muted small">{x.desc}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="acciones">
+        <button className="btn" onClick={onCerrar}>Cancelar</button>
+        <button
+          className="btn primary"
+          disabled={pendiente}
+          onClick={() => correr(async () => {
+            const r = await guardarAccesoIndividual(perfil.id, secciones, permisos)
+            if (r.ok) onCerrar()
+            return r
+          })}
+        >
+          {pendiente ? "Guardando…" : "Guardar accesos"}
+        </button>
+      </div>
     </div>
   )
 }

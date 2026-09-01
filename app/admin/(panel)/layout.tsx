@@ -48,8 +48,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const ruta = (await headers()).get("x-mg-ruta") ?? "/admin"
   const slug = ruta.replace(/^\/admin\/?/, "").split("/")[0]
 
-  if (!puedeVerSeccion(perfil.rol, slug)) {
-    redirect(seccionInicial(perfil.rol))
+  if (!puedeVerSeccion(perfil, slug)) {
+    redirect(seccionInicial(perfil))
   }
 
   // Contadores para las píldoras de la navegación: lo que exige atención hoy.
