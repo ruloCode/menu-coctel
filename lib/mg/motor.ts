@@ -302,6 +302,33 @@ export function calcularAlertas(s: Snapshot): Alerta[] {
         msg: `${nm} — faltan ${p.tracks - p.grabados} canciones y el deadline de grabación es ${fmt(recDl)} (${p.titulo}).`,
       })
     }
+    // ---- handoff a mezcla ----
+    // La grabacion ya esta cerrada, asi que el trabajo esta en la mesa de
+    // mezcla. Aqui es donde se perdian dias: el proyecto desaparecia de la
+    // vista de estudio y nadie miraba la fecha de entrega hasta que era tarde.
+    if (p.tracks > 0 && p.grabados >= p.tracks) {
+      const master = evs.find((e) => e.id === `${p.id}:master`)
+      if (master && !master.hecho) {
+        if (master.fecha < t) {
+          out.push({
+            nivel: "critical", proyectoId: p.id,
+            msg: `${nm} — el máster de ${p.titulo} debía entregarse ${fmt(master.fecha)} y sigue abierto.`,
+          })
+        } else if (master.fecha <= masDias(t, 10)) {
+          out.push({
+            nivel: "warn", proyectoId: p.id,
+            msg: `${nm} — el máster de ${p.titulo} se entrega ${fmt(master.fecha)}. Confirmar que la mezcla llega.`,
+          })
+        }
+        if (!master.responsable_id && !p.lider_id) {
+          out.push({
+            nivel: "warn", proyectoId: p.id,
+            msg: `${nm} — ${p.titulo} tiene la grabación cerrada y nadie asignado a la mezcla. Sin dueño no arranca.`,
+          })
+        }
+      }
+    }
+
     if (p.estado === "negociacion" && p.pre_start < masDias(t, 30)) {
       out.push({ nivel: "warn", proyectoId: p.id, msg: `${nm} — la negociación sigue abierta y su pre-lanzamiento empieza ${fmt(p.pre_start)}. Cerrar acuerdo primero.` })
     }

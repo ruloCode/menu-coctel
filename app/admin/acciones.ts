@@ -706,7 +706,12 @@ export async function actualizarInscripcion(
 }
 
 /** Marcar una sesión como grabada: suma una canción al proyecto y cierra el
- *  evento. Es lo que hace que el agendador vuelva a repartir lo que falta. */
+ *  evento. Es lo que hace que el agendador vuelva a repartir lo que falta.
+ *
+ *  Cuando cae la última, la grabación queda cerrada y el trabajo pasa a la
+ *  mesa de mezcla. Ese salto se avisa aquí, en el momento real en que ocurre:
+ *  esperar a la fecha planeada del hito deja a quien mezcla sin saber que ya
+ *  puede empezar, que era justo el hueco por el que se perdían días. */
 export async function marcarSesionGrabada(eventoId: string, proyectoId: string) {
   return mutar("operar", async () => {
     const supabase = await createClient()
@@ -714,13 +719,92 @@ export async function marcarSesionGrabada(eventoId: string, proyectoId: string) 
       .from("mg_proyectos").select("*, mg_artistas(nombre)").eq("id", proyectoId).single()
     if (!p) throw new Error("Proyecto no encontrado")
 
+    const yaEstaba = p.tracks > 0 && p.grabados >= p.tracks
     const grabados = Math.min(p.grabados + 1, p.tracks)
-    const estado = grabados >= p.tracks && p.estado === "sin_producir" ? "mezcla" : p.estado
+    const cierra = !yaEstaba && p.tracks > 0 && grabados >= p.tracks
+
+    // Antes solo saltaba desde 'sin_producir', asi que un proyecto que ya
+    // estaba en 'grabacion' terminaba de grabar y se quedaba en 'grabacion'
+    // para siempre, sin aparecer nunca en la cola de mezcla.
+    const estado = cierra && (p.estado === "sin_producir" || p.estado === "grabacion")
+      ? "mezcla" : p.estado
+
     await supabase.from("mg_proyectos").update({ grabados, estado }).eq("id", proyectoId)
     await upsertEstado(eventoId, { hecho: true })
 
     const nombre = (p.mg_artistas as unknown as { nombre: string } | null)?.nombre ?? "?"
-    return `🎙 Sesión completada: ${nombre} (${grabados}/${p.tracks} grabadas). Agenda recalculada.`
+    if (!cierra) {
+      return `🎙 Sesión completada: ${nombre} (${grabados}/${p.tracks} grabadas). Agenda recalculada.`
+    }
+
+    await avisarHandoffMezcla(proyectoId, p, nombre)
+    return `🎚 Grabación cerrada: ${nombre} — ${p.titulo} (${p.tracks}/${p.tracks}). Pasa a mezcla.`
+  })
+}
+
+/** Deshacer una sesión marcada por error. Sin esto, un clic de más deja
+ *  `grabados` inflado y el agendador programa una sesión menos, sin vuelta
+ *  atrás desde la interfaz. */
+export async function revertirSesionGrabada(eventoId: string, proyectoId: string) {
+  return mutar("operar", async () => {
+    const supabase = await createClient()
+    const { data: p } = await supabase
+      .from("mg_proyectos").select("*, mg_artistas(nombre)").eq("id", proyectoId).single()
+    if (!p) throw new Error("Proyecto no encontrado")
+
+    const grabados = Math.max(0, p.grabados - 1)
+    // Si deja de estar completa, el proyecto vuelve a estar grabando.
+    const estado = p.estado === "mezcla" && grabados < p.tracks ? "grabacion" : p.estado
+    await supabase.from("mg_proyectos").update({ grabados, estado }).eq("id", proyectoId)
+    await upsertEstado(eventoId, { hecho: false })
+
+    const nombre = (p.mg_artistas as unknown as { nombre: string } | null)?.nombre ?? "?"
+    return `↺ Sesión reabierta: ${nombre} (${grabados}/${p.tracks} grabadas).`
+  })
+}
+
+/**
+ * Avisa a quien mezcla que la grabación quedó cerrada, con la fecha de entrega.
+ *
+ * Cascada de destinatarios: el responsable del hito `master` manda porque es
+ * la decisión más específica; si nadie lo tomó, el líder del proyecto; y si
+ * tampoco, el área de producción entera. Avisar a un área es peor que avisar
+ * a una persona, pero infinitamente mejor que no avisar a nadie.
+ */
+async function avisarHandoffMezcla(
+  proyectoId: string,
+  p: { titulo: string; release: string; tracks: number; lider_id: string | null },
+  nombreArtista: string,
+) {
+  const supabase = await createClient()
+
+  const { data: st } = await supabase
+    .from("mg_eventos_estado").select("responsable_id, fecha_override")
+    .eq("evento_id", `${proyectoId}:master`).maybeSingle()
+
+  let destinatarios: string[] = []
+  if (st?.responsable_id) destinatarios = [st.responsable_id]
+  else if (p.lider_id) destinatarios = [p.lider_id]
+  else {
+    const { data: area } = await supabase
+      .from("perfiles").select("id").eq("rol", "produccion").eq("activo", true)
+    destinatarios = (area ?? []).map((x) => x.id as string)
+  }
+  if (!destinatarios.length) return
+
+  const { data: cfg } = await supabase.from("mg_config").select("reglas").maybeSingle()
+  const masterFinal = Number((cfg?.reglas as Record<string, number> | null)?.masterFinal ?? 35)
+  const entrega = st?.fecha_override ?? masDias(p.release, -masterFinal)
+  const dias = Math.round((D(entrega).getTime() - D(hoy()).getTime()) / 86400000)
+
+  await avisar(destinatarios, {
+    tipo: "asignacion",
+    titulo: `🎚 Arranca la mezcla · ${nombreArtista} — ${p.titulo}`,
+    cuerpo:
+      `Las ${p.tracks} canciones ya están grabadas, así que la mezcla puede empezar. ` +
+      `Entrega del máster: ${fmt(entrega)}` +
+      (dias >= 0 ? ` — quedan ${dias} días.` : ` — la fecha ya pasó hace ${-dias} días.`),
+    enlace: "/admin/estudio",
   })
 }
 
