@@ -37,10 +37,14 @@ const TODAS_LAS_FRANJAS = FRANJAS.map((f) => f.valor)
 type Aviso = { txt: string; error?: boolean }
 
 export default function VistaMg1({
-  inscripciones, puedeEditar,
+  inscripciones, puedeCurar, puedeContactar,
 }: {
   inscripciones: InscripcionMG1[]
-  puedeEditar: boolean
+  /** Decidir: mover el estado de una inscripción. Es de quien opera. */
+  puedeCurar: boolean
+  /** Acompañar: anotar disponibilidad y notas. Puede venir de una concesión
+   *  individual, sin que eso dé voto en la curaduría. */
+  puedeContactar: boolean
 }) {
   const [filtro, setFiltro] = useState("todos")
   const [filtroDispo, setFiltroDispo] = useState("todos")
@@ -148,7 +152,12 @@ export default function VistaMg1({
       <div className="topbar">
         <div>
           <h1>Convocatoria MG1</h1>
-          <div className="sub">Inscripciones que llegan del formulario público de /mg1/convocatoria.</div>
+          <div className="sub">
+            Inscripciones que llegan del formulario público de /mg1/convocatoria.
+            {puedeContactar && !puedeCurar
+              ? " Puedes anotar disponibilidad y notas; el estado lo decide la curaduría."
+              : null}
+          </div>
         </div>
         <div className="spacer" />
         <a className="btn" href="/mg1/convocatoria" target="_blank" rel="noopener noreferrer">Ver landing ↗</a>
@@ -262,7 +271,7 @@ export default function VistaMg1({
                           </button>
                         </td>
                         <td>
-                          {puedeEditar ? (
+                          {puedeCurar ? (
                             <select
                               value={i.estado}
                               onChange={(e) => arrancar(async () => { await actualizarInscripcion(i.id, { estado: e.target.value }) })}
@@ -285,7 +294,7 @@ export default function VistaMg1({
                             <EditorDisponibilidad
                               inscripcion={i}
                               dispo={dispo}
-                              puedeEditar={puedeEditar}
+                              puedeEditar={puedeContactar}
                               aviso={avisos[i.id]}
                               onFranja={(fecha, franja) => alternarFranja(i, fecha, franja)}
                               onDia={(fecha, bloque) => alternarDia(i, fecha, bloque)}
@@ -313,7 +322,7 @@ export default function VistaMg1({
         </p>
       </div>
 
-      {detalle ? <Ficha inscripcion={detalle} dispo={dispoDe(detalle)} puedeEditar={puedeEditar} onClose={() => setDetalle(null)} /> : null}
+      {detalle ? <Ficha inscripcion={detalle} dispo={dispoDe(detalle)} puedeEditar={puedeContactar} onClose={() => setDetalle(null)} /> : null}
     </>
   )
 }

@@ -21,6 +21,11 @@ export interface Perfil {
   artista_id: string | null
   /** Bloques de trabajo que aguanta a la semana; base de la vista de carga. */
   capacidad_semanal: number
+  /** Excepciones personales sobre lo que da el rol: secciones que ve además de
+   *  las suyas, y permisos concedidos a esta persona en concreto. Las escribe
+   *  un admin desde /admin/equipo y las impone la base (migración 017). */
+  secciones_extra: string[]
+  permisos_extra: string[]
   ultimo_acceso: string | null
   created_at: string
   /** Solo en previsualizacion: el rol REAL de quien mira. Lo pone perfilActual

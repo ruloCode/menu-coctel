@@ -13,7 +13,7 @@ export async function perfilActual(): Promise<Perfil | null> {
 
   const { data } = await supabase
     .from("perfiles")
-    .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at")
+    .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at, secciones_extra, permisos_extra")
     .eq("id", user.id)
     .maybeSingle()
 
@@ -32,7 +32,16 @@ export async function perfilActual(): Promise<Perfil | null> {
     const cookies = await import("next/headers").then((m) => m.cookies())
     const visto = cookies.get("mg-ver-como")?.value
     if (visto && visto !== perfil.rol && ROLES_VALIDOS.has(visto)) {
-      return { ...perfil, rol: visto as Perfil["rol"], verComoReal: perfil.rol }
+      // Se previsualiza un ROL, así que las concesiones individuales de quien
+      // mira se apagan: con ellas puestas, un owner vería un panel que ninguna
+      // persona con ese rol tiene, que es justo lo contrario de lo que busca.
+      return {
+        ...perfil,
+        rol: visto as Perfil["rol"],
+        secciones_extra: [],
+        permisos_extra: [],
+        verComoReal: perfil.rol,
+      }
     }
   }
 
@@ -63,7 +72,7 @@ export async function cargarSnapshot(): Promise<Snapshot> {
       supabase.from("mg_textos").select("*").order("created_at", { ascending: false }),
       supabase.from("mg_bitacora").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("perfiles")
-        .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at")
+        .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at, secciones_extra, permisos_extra")
         .eq("activo", true).order("nombre"),
       supabase.from("mg_comentarios").select("*").order("created_at"),
     ])
@@ -139,7 +148,7 @@ export async function cargarEquipo(): Promise<Perfil[]> {
   const supabase = await createClient()
   const { data } = await supabase
     .from("perfiles")
-    .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at")
+    .select("id, email, nombre, rol, activo, avatar_url, artista_id, capacidad_semanal, ultimo_acceso, created_at, secciones_extra, permisos_extra")
     .order("created_at")
   return (data ?? []) as Perfil[]
 }

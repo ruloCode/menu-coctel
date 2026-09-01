@@ -224,6 +224,35 @@ Alta de usuarios: cada quien crea su cuenta en `/admin/login`. El trigger
 Nadie consigue acceso solo por registrarse: el caso 2 exige que un admin haya
 escrito antes esa fila, y `mg_accesos_previstos` solo la toca `es_admin()`.
 
+### Accesos individuales (migracion `017`)
+
+El rol da la base; una persona concreta puede llevar ademas una **excepcion
+nombrada**, en dos columnas de `perfiles`:
+
+- `secciones_extra` — secciones del panel que ve ademas de las de su rol
+- `permisos_extra` — capacidades concretas concedidas a ella (catalogo cerrado
+  en `PERMISOS_EXTRA`, `lib/mg/permisos.ts`)
+
+Existe porque la alternativa cuesta mas: subir de rol concede de paso todo lo
+demas, y un rol nuevo por combinacion termina en veinte roles que nadie
+recuerda. Caso que lo motivo: quien compone y arregla (`produccion`) es ademas
+quien habla con los inscritos de MG1 y les anota cuando pueden venir.
+
+Tres invariantes:
+
+1. **Una seccion extra solo añade navegacion, nunca permisos.** Cada boton
+   sigue preguntando por el suyo. `seccionesVisibles()` descarta ademas
+   cualquier seccion cuyo permiso el rol no tenga.
+2. **Un permiso extra concede lo minimo que nombra.** `mg1:contactar` abre
+   notas y disponibilidad; el estado de la curaduria sigue siendo de
+   `puede_operar()`. Como RLS decide por fila y no por columna, ese recorte lo
+   impone el trigger `proteger_curaduria_mg1`.
+3. **Nadie se concede nada a si mismo.** Las dos columnas entran en los campos
+   que `proteger_perfil` reserva a un admin sobre OTRA cuenta.
+
+Se editan en `/admin/equipo` (boton *Personalizar* de cada fila). "Ver como"
+apaga los extras de quien mira: previsualiza un rol, no una persona.
+
 ### El rol `produccion` (area de Produccion musical)
 
 Aqui **el rol ES el area**: "mis companeros" son los perfiles activos con este
@@ -234,7 +263,7 @@ cambia.
 Dos cosas lo separan del resto de roles:
 
 - **Panel recortado por lista blanca.** `SECCIONES_POR_ROL` en `permisos.ts` le
-  da 8 de las 17 secciones. El motivo no es de seguridad sino de carga mental:
+  da 9 de las 19 secciones. El motivo no es de seguridad sino de carga mental:
   el panel completo esta pensado para quien coordina. Al anadir una seccion
   nueva hay que decidir si entra en esa lista; por omision **no** entra.
 - **El recorte se impone por ruta, no solo en la navegacion.** El middleware
@@ -244,8 +273,11 @@ Dos cosas lo separan del resto de roles:
 
 Alcance honesto: `es_staff()` sigue concediendo `SELECT` sobre las tablas
 operativas, porque media docena de policies de la `004` cuelgan de esa funcion.
-Lo que se recorta de verdad es la navegacion y las rutas, no el SELECT crudo.
-El objetivo del rol es que el panel no agobie, no aislar informacion.
+Salvo en `mg1_inscripciones`, donde la `018` corto la lectura por seccion, lo
+que se recorta es la navegacion y las rutas, no el SELECT crudo. El objetivo
+del rol es que el panel no agobie, no aislar informacion: cuando lo segundo
+haga falta —datos personales de terceros, por ejemplo— hay que decirlo y
+cerrarlo en su policy, como hizo la `018`.
 
 Puede **proponer** sesiones de estudio (`mg_eventos_extra.propuesta = true`);
 confirmarlas sigue exigiendo `puede_operar()`, porque la capacidad del estudio
@@ -293,7 +325,7 @@ Sin credenciales de Supabase, en desarrollo el route handler cae a
 
 | Tabla | Para que |
 |-------|----------|
-| `perfiles` | Un usuario del panel. FK a `auth.users`. Aqui vive el rol. |
+| `perfiles` | Un usuario del panel. FK a `auth.users`. Aqui viven el rol y sus accesos individuales (`secciones_extra`, `permisos_extra`). |
 | `mg_artistas` | Roster. `tier` marca/compilado define la ventana de campana. |
 | `mg_proyectos` | Lanzamientos. `release` es la fecha de la que cuelga todo. |
 | `mg_eventos_estado` | Excepciones sobre los eventos derivados. |
@@ -313,9 +345,15 @@ nombre del area (`'produccion'`). Asi el canal general de un area reutiliza
 menciones, edicion y moderacion en vez de estrenar una tabla de mensajes: un
 canal es un hilo de comentarios sobre una entidad que no es una fila.
 
-La `003` ademas abre `mg1_inscripciones` a lectura para el staff autenticado:
-la `002` la habia dejado como buzon de solo escritura para el publico, y el
-panel necesita curar esas inscripciones.
+La `003` ademas abrio `mg1_inscripciones` a lectura para el staff autenticado
+(la `002` la habia dejado como buzon de solo escritura para el publico, y el
+panel necesita curar esas inscripciones). La `018` estrecha esa lectura: la
+tabla guarda nombre completo, correo, celular y ciudad de gente que se
+inscribio a un concurso, no del equipo, asi que la ve **quien ve la seccion**
+—`owner`, `admin`, `manager`, `viewer`— y quien la tenga concedida a titulo
+personal (`puede_ver_mg1()`). Produccion, audiovisual, contenido y artista no.
+Esa funcion es un espejo en SQL de `SECCIONES_POR_ROL`: si cambia la lista
+blanca de la seccion `mg1`, hay que tocar las dos.
 
 ### `registros`
 

@@ -1,4 +1,4 @@
-import type { Area, RolApp } from "./tipos"
+import type { Area, Perfil, RolApp } from "./tipos"
 
 // Espejo en cliente de lo que ya impone RLS en Postgres. Sirve para no
 // mostrar botones que van a fallar; la autoridad real siempre es la base de
@@ -43,6 +43,46 @@ export const puede = (rol: RolApp | null | undefined, permiso: Permiso): boolean
 
 export const etiquetaRol = (rol: RolApp): string =>
   ROLES.find((r) => r.valor === rol)?.label ?? rol
+
+/* ============================================================
+   Accesos individuales
+   ============================================================
+   El rol da la base; una persona concreta puede llevar además una excepción
+   nombrada. Existe porque la alternativa —subir de rol para conceder una
+   cosa, o inventar un rol por cada combinación— cuesta mucho más de lo que
+   arregla. Ver la migración 017 para las invariantes; aquí solo el espejo.
+
+   Regla al añadir uno: que nombre una tarea concreta y conceda lo mínimo
+   que esa tarea necesita. `seccion` es la sección sin la cual el permiso no
+   se puede ejercer, para que la interfaz las conceda juntas. */
+
+export const PERMISOS_EXTRA = [
+  {
+    clave: "mg1:contactar",
+    label: "Contactar concursantes MG1",
+    desc: "Anota la disponibilidad y las notas de cada inscripción. No cambia el estado de la curaduría.",
+    seccion: "mg1",
+  },
+] as const
+
+export type PermisoExtra = (typeof PERMISOS_EXTRA)[number]["clave"]
+
+/** Lo mínimo para decidir qué ve y qué toca alguien: su rol y sus excepciones. */
+export type Acceso = Pick<Perfil, "rol" | "secciones_extra" | "permisos_extra">
+
+/** Las funciones de abajo aceptan un rol suelto o una persona entera. Un rol
+ *  suelto es el caso de "¿qué vería alguien con este rol?" (la previsualización
+ *  y la tabla de /admin/equipo); una persona incluye además lo suyo. */
+type Quien = RolApp | Acceso | null | undefined
+
+const esRol = (q: Quien): q is RolApp => typeof q === "string"
+const rolDe = (q: Quien): RolApp | null => (esRol(q) ? q : q?.rol ?? null)
+const seccionesExtraDe = (q: Quien): string[] => (esRol(q) || !q ? [] : q.secciones_extra ?? [])
+const permisosExtraDe = (q: Quien): string[] => (esRol(q) || !q ? [] : q.permisos_extra ?? [])
+
+/** Un permiso concedido a esta persona en concreto, por encima de su rol. */
+export const tieneExtra = (quien: Quien, clave: PermisoExtra): boolean =>
+  permisosExtraDe(quien).includes(clave)
 
 /* ============================================================
    Áreas de trabajo
@@ -107,25 +147,40 @@ export const SECCIONES_POR_ROL: Partial<Record<RolApp, string[]>> = {
   artista: ["zeri", "mi-trabajo", "bandeja", "", "calendario"],
 }
 
-export const seccionesVisibles = (rol: RolApp | null | undefined) => {
-  const permitidas = rol ? SECCIONES_POR_ROL[rol] : undefined
+export const seccionesVisibles = (quien: Quien) => {
+  const rol = rolDe(quien)
+  const recorte = rol ? SECCIONES_POR_ROL[rol] : undefined
+  const extra = new Set(seccionesExtraDe(quien))
 
-  if (permitidas) {
-    return SECCIONES.filter((s) => permitidas.includes(s.slug))
-  }
+  return SECCIONES.filter((s) => {
+    // Primero el permiso, siempre. Una concesión individual añade navegación,
+    // nunca capacidades: si la sección exige un permiso que el rol no tiene,
+    // no aparece aunque alguien la haya concedido. Así una concesión mal
+    // puesta no pinta una pantalla cuyos botones fallarían todos.
+    if (s.permiso && !puede(rol, s.permiso)) return false
 
-  return SECCIONES.filter((s) => !s.permiso || puede(rol, s.permiso))
+    return recorte ? recorte.includes(s.slug) || extra.has(s.slug) : true
+  })
 }
 
 /** Guardia de ruta. La navegación oculta lo que no toca, pero alguien puede
  *  escribir /admin/cartera a mano; el layout del panel usa esto para redirigir. */
-export const puedeVerSeccion = (rol: RolApp | null | undefined, slug: string): boolean =>
-  seccionesVisibles(rol).some((s) => s.slug === slug)
+export const puedeVerSeccion = (quien: Quien, slug: string): boolean =>
+  seccionesVisibles(quien).some((s) => s.slug === slug)
 
 /** Dónde mandar a alguien que pidió una sección que no le corresponde: a la
  *  primera que sí, no a un 403 seco. */
-export const seccionInicial = (rol: RolApp | null | undefined): string => {
-  const visibles = seccionesVisibles(rol)
+export const seccionInicial = (quien: Quien): string => {
+  const visibles = seccionesVisibles(quien)
   const inicio = visibles.find((s) => s.slug === "") ?? visibles[0]
   return inicio ? `/admin/${inicio.slug}`.replace(/\/$/, "") : "/admin"
+}
+
+/** Las secciones que se le pueden conceder a esta persona: las que su rol no
+ *  le da ya y cuyo permiso sí tiene. Alimenta el editor de /admin/equipo. */
+export const seccionesConcedibles = (rol: RolApp) => {
+  const propias = new Set(seccionesVisibles(rol).map((s) => s.slug))
+  return SECCIONES.filter(
+    (s) => s.slug !== "" && !propias.has(s.slug) && (!s.permiso || puede(rol, s.permiso)),
+  )
 }

@@ -42,7 +42,7 @@ export default function PanelShell({
     }
   }
 
-  const secciones = seccionesVisibles(perfil.rol)
+  const secciones = seccionesVisibles(perfil)
   const grupos = [...new Set(secciones.map((s) => s.grupo))]
   const iniciales = (perfil.nombre || perfil.email).slice(0, 2).toUpperCase()
 
