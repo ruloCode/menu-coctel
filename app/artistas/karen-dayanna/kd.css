@@ -1,0 +1,104 @@
+/*
+ * Sistema visual de la pagina de Karen Dayanna.
+ *
+ * Cruza dos identidades: la del press kit de la artista (negro absoluto,
+ * Bebas Neue en display, una tipografia de alto contraste para el cuerpo,
+ * pastillas de contorno fino, esquinas redondeadas y una paleta violeta/azul
+ * noche que sale de sus propias fotos) con la de MG (rojo #E8200C, kickers en
+ * mono con corchetes, reglas de 1px). Todo vive bajo .kd para no filtrarse al
+ * resto del sitio.
+ */
+
+.kd {
+  --kd-noche: #050509;
+  --kd-tinta: #0b0b12;
+  --kd-violeta: #a78bfa;
+  --kd-lila: #cbb6e6;
+  --kd-azul: #2b3a8c;
+  --kd-ambar: #e8a87c;
+  --kd-rojo: #e8200c;
+
+  background-color: var(--kd-noche);
+}
+
+/* Tipografia de contraste del press kit (stand-in libre de Kudryashev) */
+.kd-contrast {
+  font-family: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  letter-spacing: 0.005em;
+}
+
+/* Pastilla de contorno: el recurso que la EPK usa para etiquetar bloques */
+.kd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  line-height: 1;
+}
+
+/* Barrido de luz que recorre las pastillas y tarjetas al entrar en viewport */
+.kd-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.kd-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(203, 182, 230, 0.22) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.kd-sheen:hover::after {
+  animation: kd-sheen-run 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes kd-sheen-run {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+/* Grano de pelicula: unifica fotos de camaras y noches distintas */
+.kd-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Titulo vertical (la EPK gira "DISCOGRAFIA" y "PLATAFORMAS") */
+.kd-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.kd-link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.kd-link-underline:hover {
+  background-size: 0% 1px;
+  background-position: 100% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kd-sheen:hover::after {
+    animation: none;
+  }
+}

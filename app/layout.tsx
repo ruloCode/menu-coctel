@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google"
+import { Inter, Bebas_Neue, JetBrains_Mono, Cormorant_Garamond } from "next/font/google"
 import "./globals.css"
 import SiteChrome from "@/components/site-chrome"
 
@@ -10,6 +10,14 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-mono",
+})
+// Sustituto libre de Kudryashev Display Contrast, la tipografia de contraste
+// del press kit de Karen Dayanna
+const cormorant = Cormorant_Garamond({
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-cormorant",
 })
 
 export const metadata: Metadata = {
@@ -48,7 +56,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="scroll-smooth">
-      <body className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} font-body`}>
+      <body className={`${inter.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} ${cormorant.variable} font-body`}>
         <SiteChrome>{children}</SiteChrome>
       </body>
     </html>

@@ -23,6 +23,7 @@ const config = {
         heading: ['var(--font-bebas)', 'sans-serif'],
         body: ['var(--font-inter)', 'Helvetica', 'Arial', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        contrast: ['var(--font-cormorant)', 'Georgia', 'Times New Roman', 'serif'],
       },
       fontWeight: {
         'black': '900',
