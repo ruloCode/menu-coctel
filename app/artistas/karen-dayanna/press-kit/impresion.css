@@ -35,7 +35,7 @@
 .rotulo {
   font-family: var(--font-mono), monospace;
   font-size: 13px;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: #e8200c;
   display: flex;
@@ -56,9 +56,39 @@
   letter-spacing: -0.005em;
 }
 
+/*
+ * Dos voces de texto, repartidas por funcion.
+ *
+ * `.cuerpo` es la serif de contraste: lleva la prosa — biografia, notas,
+ * descripciones — donde el tono editorial del press kit importa. Va en peso
+ * 500, no 300: sobre negro los trazos finos de una serif de alto contraste se
+ * cierran y el texto se vuelve gris.
+ *
+ * `.dato` es Inter, la tipografica de cuerpo de MG. Lleva lo que se lee para
+ * usarlo y no para saborearlo: los puntos del rider, la ficha, el correo. Un
+ * promotor tiene que poder copiar "Shure SM58" o el correo de un vistazo.
+ */
 .cuerpo {
   font-family: var(--font-cormorant), Georgia, serif;
-  font-weight: 300;
+  font-weight: 500;
+  /* Cormorant usa cifras elzevirianas por defecto y "30 - 60 min" sale con los
+     numeros bailando bajo la linea base */
+  font-variant-numeric: lining-nums;
+}
+
+.dato {
+  font-family: var(--font-inter), -apple-system, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.003em;
+}
+
+/* Rotulos en mono: 10px con 0.28em de tracking se leia como una tira de
+   simbolos. Un punto mas y menos separacion los devuelve a ser palabras. */
+.etiqueta {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 .pastilla {
@@ -81,9 +111,9 @@
   justify-content: space-between;
   font-family: var(--font-mono), monospace;
   font-size: 11px;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 /* En pantalla las laminas se apilan centradas para poder revisarlas */

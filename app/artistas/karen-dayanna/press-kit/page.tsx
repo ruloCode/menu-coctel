@@ -94,7 +94,7 @@ export default function PressKitImprimible() {
               alt="Firma de Karen Dayanna"
               className="mt-7 w-[400px] opacity-80"
             />
-            <p className="cuerpo mt-8 max-w-[620px] text-[23px] leading-relaxed text-white/80">
+            <p className="cuerpo mt-8 max-w-[620px] text-[25px] leading-relaxed text-white/88">
               Canciones sobre la memoria y todo lo que perdura. En vivo, mucho
               más que un show: un encuentro.
             </p>
@@ -121,7 +121,7 @@ export default function PressKitImprimible() {
               <Chevrones />
             </div>
 
-            <div className="cuerpo space-y-6 pr-6 text-[25px] leading-[1.45] text-white/90">
+            <div className="cuerpo space-y-6 pr-6 text-[26px] leading-[1.45] text-white/92">
               {BIOGRAFIA.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
@@ -129,7 +129,7 @@ export default function PressKitImprimible() {
 
             <div>
               <div className="rounded-2xl border border-white/18 bg-white/[0.03] p-7">
-                <p className="cuerpo text-[19px] leading-relaxed text-white/80">
+                <p className="cuerpo text-[20px] leading-relaxed text-white/88">
                   {NOTA_ESCENARIO}
                 </p>
               </div>
@@ -139,10 +139,10 @@ export default function PressKitImprimible() {
                     key={k}
                     className="flex items-baseline justify-between gap-5 border-b border-white/12 py-[13px]"
                   >
-                    <dt className="font-mono text-[10px] uppercase tracking-[0.28em] text-white/40">
-                      {k}
-                    </dt>
-                    <dd className="cuerpo text-right text-[16px] text-white/85">{v}</dd>
+                    <dt className="etiqueta text-white/45">{k}</dt>
+                    <dd className="dato text-right text-[15px] leading-snug text-white/88">
+                      {v}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -159,20 +159,20 @@ export default function PressKitImprimible() {
 
           <div className="mt-11 grid flex-1 grid-cols-2 gap-16">
             {SENCILLOS.map((s) => (
-              <article key={s.titulo} className="flex flex-col">
+              <article key={s.titulo}>
                 <div className="flex items-start gap-7">
                   <div className="relative h-[224px] w-[224px] shrink-0 overflow-hidden rounded-2xl border border-white/12">
                     <Image src={s.cover} alt="" fill sizes="224px" loading="eager" className="object-cover" />
                   </div>
                   <div className="pt-1">
-                    <span className="pastilla font-mono text-[10px] uppercase tracking-[0.26em] text-white/70">
+                    <span className="pastilla etiqueta text-white/75">
                       {s.orden}
                     </span>
                     <h2 className="titulo-lamina mt-5 text-[52px]">{s.titulo}</h2>
                   </div>
                 </div>
-                <p className="cuerpo mt-7 text-[19px] leading-[1.5] text-white/70">{s.texto}</p>
-                <p className="mt-auto pt-6 font-mono text-[10px] uppercase tracking-[0.26em] text-[#a78bfa]">
+                <p className="cuerpo mt-7 text-[20px] leading-[1.5] text-white/85">{s.texto}</p>
+                <p className="mt-5 etiqueta text-[#a78bfa]">
                   Spotify · {s.enlace.replace("https://", "")}
                 </p>
               </article>
@@ -211,7 +211,7 @@ export default function PressKitImprimible() {
                 <br />
                 un show
               </h2>
-              <p className="cuerpo mt-8 text-[19px] leading-[1.55] text-white/70">
+              <p className="cuerpo mt-8 text-[20px] leading-[1.55] text-white/85">
                 {NOTA_EN_VIVO}
               </p>
             </div>
@@ -219,14 +219,14 @@ export default function PressKitImprimible() {
             <div className="grid grid-cols-2 gap-x-12 gap-y-9 pt-2">
               {RIDER.map((b) => (
                 <div key={b.titulo}>
-                  <span className="pastilla cuerpo text-[17px] text-white/85">{b.titulo}</span>
+                  <span className="pastilla cuerpo text-[18px] text-white/92">{b.titulo}</span>
                   <ul className="mt-5 space-y-[11px]">
                     {b.puntos.map((p) => (
                       <li key={p} className="flex gap-3">
-                        <span className="mt-[6px] font-mono text-[11px] leading-none text-[#a78bfa]">
+                        <span className="mt-[5px] font-mono text-[11px] leading-none text-[#a78bfa]">
                           +
                         </span>
-                        <span className="cuerpo text-[17px] leading-snug text-white/72">{p}</span>
+                        <span className="dato text-[15px] leading-[1.5] text-white/88">{p}</span>
                       </li>
                     ))}
                   </ul>
@@ -246,7 +246,7 @@ export default function PressKitImprimible() {
           <div className="mt-9 flex flex-1 gap-6">
             <div className="flex w-[300px] shrink-0 flex-col">
               <h2 className="titulo-lamina text-[76px]">Foto&shy;grafía</h2>
-              <p className="cuerpo mt-6 text-[17px] leading-relaxed text-white/60">
+              <p className="cuerpo mt-6 text-[18px] leading-relaxed text-white/78">
                 Fotografías oficiales disponibles para prensa, festivales y
                 promotores. El paquete completo en alta resolución se entrega
                 bajo solicitud.
@@ -305,13 +305,13 @@ export default function PressKitImprimible() {
 
           <div className="mt-10 grid grid-cols-[1fr_1fr] gap-16">
             <div>
-              <p className="cuerpo text-[20px] leading-[1.5] text-white/78">
+              <p className="cuerpo text-[21px] leading-[1.5] text-white/88">
                 {NOTA_PLATAFORMAS}
               </p>
               <div className="mt-9 space-y-6">
                 {CIFRAS.map((c) => (
                   <div key={c.etiqueta} className="border-t border-white/14 pt-4">
-                    <p className="cuerpo text-[15px] text-white/45">{c.fuentes}</p>
+                    <p className="dato text-[13px] text-white/60">{c.fuentes}</p>
                     <p className="titulo-lamina mt-2 flex items-baseline gap-2 text-[54px]">
                       <span className="text-[0.42em] text-[#a78bfa]">↗</span>
                       {c.valor.toLocaleString("es-CO", {
@@ -319,7 +319,7 @@ export default function PressKitImprimible() {
                         maximumFractionDigits: c.decimales ?? 0,
                       })}
                       <span className="text-[#a78bfa]">{c.sufijo}</span>
-                      <span className="ml-3 font-mono text-[11px] uppercase tracking-[0.28em] text-white/55">
+                      <span className="etiqueta ml-3 text-white/65">
                         {c.etiqueta}
                       </span>
                     </p>
@@ -335,7 +335,7 @@ export default function PressKitImprimible() {
                 colaboración
                 <br />y eventos
               </h2>
-              <p className="cuerpo mt-6 text-[18px] leading-relaxed text-white/65">
+              <p className="cuerpo mt-6 text-[19px] leading-relaxed text-white/82">
                 Posibilidades de movilidad nacional e internacional.
               </p>
 
@@ -347,10 +347,8 @@ export default function PressKitImprimible() {
                   ["Ubicación", "Bogotá, Colombia"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-baseline gap-6 border-b border-white/12 pb-3">
-                    <dt className="w-[110px] shrink-0 font-mono text-[10px] uppercase tracking-[0.28em] text-white/40">
-                      {k}
-                    </dt>
-                    <dd className="cuerpo text-[18px] text-white/88">{v}</dd>
+                    <dt className="etiqueta w-[112px] shrink-0 text-white/45">{k}</dt>
+                    <dd className="dato text-[16px] text-white/92">{v}</dd>
                   </div>
                 ))}
               </dl>
