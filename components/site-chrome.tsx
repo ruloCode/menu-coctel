@@ -7,7 +7,14 @@ import SiteFooter from "./site-footer"
 // Rutas standalone: sin header/footer del sitio
 // (invitaciones, propuestas privadas, landings de conversión con su propio footer
 // y el panel administrativo, que trae su propio chrome)
-const STANDALONE_PREFIXES = ["/mg1/jurado", "/mg1/convocatoria", "/admin"]
+const STANDALONE_PREFIXES = [
+  "/mg1/jurado",
+  "/mg1/convocatoria",
+  "/admin",
+  // Vistas imprimibles: son laminas de tamano fijo, el header y el footer del
+  // sitio no pintan nada dentro de un PDF.
+  "/artistas/karen-dayanna/press-kit",
+]
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

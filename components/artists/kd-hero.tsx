@@ -106,9 +106,6 @@ export default function KdHero() {
     damping: 20,
   })
 
-  // El panel del retrato deriva mas rapido que el fondo: es lo que da la
-  // sensacion de capas sin recurrir a sombras.
-  const panelY = useTransform(scrollYProgress, [0, 1], [0, -90])
 
   const estatico = reducido
 
@@ -117,7 +114,7 @@ export default function KdHero() {
       ref={ref}
       className="kd-grain relative -mt-16 flex min-h-[92svh] items-end overflow-hidden border-b border-white/10 md:-mt-24 md:min-h-[100svh] lg:-mt-28"
     >
-      {/* De fondo, la misma toma que abre su press kit: apaisada, aguanta
+      {/* De fondo, la toma apaisada de la sesion de Pa' Toda la Vida: aguanta
           cualquier ancho sin convertirse en un primer plano recortado. */}
       <motion.div
         className="absolute inset-0"
@@ -132,8 +129,8 @@ export default function KdHero() {
           className="object-cover object-[58%_12%] md:hidden"
         />
         <Image
-          src="/artists/karen-dayanna/kd-live-wide.jpg"
-          alt="Karen Dayanna en vivo en La Casa de Los Amigos"
+          src="/artists/karen-dayanna/kd-sesion-cuarto.jpg"
+          alt="Karen Dayanna en la sesión de Pa' Toda la Vida"
           fill
           priority
           sizes="100vw"
@@ -157,7 +154,7 @@ export default function KdHero() {
       />
 
       <motion.div
-        className="container relative mx-auto w-full px-4 pb-14 pt-44 md:px-6 md:pb-20 md:pt-64 lg:px-10 xl:max-w-[min(100%,72rem)] xl:pr-0"
+        className="container relative mx-auto w-full px-4 pb-14 pt-44 md:px-6 md:pb-20 md:pt-64 lg:px-10"
         style={estatico ? undefined : { y: textoY, opacity: textoOpacidad }}
       >
         <motion.div
@@ -237,29 +234,8 @@ export default function KdHero() {
         </motion.p>
       </motion.div>
 
-      <div className="pointer-events-none absolute right-10 top-1/2 hidden w-[19rem] -translate-y-1/2 xl:block 2xl:w-[22rem]">
-        <motion.figure
-          style={estatico ? undefined : { y: panelY }}
-          initial={{ opacity: 0, x: 60 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1.4, delay: 0.7, ease: salida }}
-        >
-          <div className="kd-grain relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/15 shadow-[0_40px_100px_-30px_rgba(0,0,0,0.95)]">
-            <Image
-              src="/artists/karen-dayanna/kd-portrait.jpg"
-              alt=""
-              aria-hidden="true"
-              fill
-              sizes="22rem"
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050509]/55 via-transparent to-transparent" />
-          </div>
-        </motion.figure>
-      </div>
-
       <motion.div
-        className="pointer-events-none absolute bottom-8 right-5 hidden md:right-10 md:block xl:right-[24rem] 2xl:right-[27rem]"
+        className="pointer-events-none absolute bottom-8 right-5 hidden md:right-10 md:block"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1.8 }}

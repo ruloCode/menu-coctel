@@ -11,8 +11,8 @@ Ninguna fue reencuadrada ni retocada; solo recomprimidas a JPEG.
 | `kd-closeup.jpg` | primer plano nocturno, pag. 4 (1080x1350, intacto) |
 | `kd-blazer.jpg` | retrato con blazer, pag. 4 (1536x1920, intacto) |
 | `kd-live-01.jpg` | en vivo vertical, pag. 4 (2458x3277 -> 1950x2600) |
-| `kd-live-wide.jpg` | en vivo apaisada, La Casa de Los Amigos |
-| `kd-cuarto.jpg` | sesion de *Pa' Toda la Vida* |
+| `kd-live-sala.jpg` | en vivo en La Casa de Los Amigos (1536x1024, intacto) |
+| `kd-sesion-cuarto.jpg` | sesion de *Pa' Toda la Vida*, apaisada (1821x916) |
 | `cover-pa-toda-la-vida.jpg` | caratula del sencillo (2835px -> 1600px) |
 | `cover-volare.jpg` | caratula del sencillo (1400px, intacto) |
 | `firma.svg` | su firma manuscrita, vectorizada del PDF (fuente Amsterdam Four) |

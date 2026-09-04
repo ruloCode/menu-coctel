@@ -18,6 +18,8 @@ export interface Sencillo {
   cover: string
   texto: string
   enlace: string
+  /** ID de la pista en Spotify, para el reproductor incrustado. */
+  spotify: string
 }
 
 const MUELLE = { stiffness: 150, damping: 18, mass: 0.6 }
@@ -126,19 +128,32 @@ function TarjetaSencillo({ sencillo, indice }: { sencillo: Sencillo; indice: num
           </h3>
         </a>
 
-        <p className="kd-contrast mt-4 max-w-md text-base leading-relaxed text-white/60 md:text-lg">
-          {sencillo.texto}
-        </p>
-
-        <a
-          href={sencillo.enlace}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="kd-link-underline mt-5 inline-block font-mono text-[11px] uppercase tracking-[0.28em] text-[#a78bfa]"
-        >
-          Escuchar en plataformas
-        </a>
       </motion.div>
+
+      <p className="kd-contrast mt-4 max-w-md text-base leading-relaxed text-white/60 md:text-lg">
+        {sencillo.texto}
+      </p>
+
+      <div className="mt-6 overflow-hidden rounded-xl border border-white/10">
+        <iframe
+          src={`https://open.spotify.com/embed/track/${sencillo.spotify}?utm_source=generator&theme=0`}
+          width="100%"
+          height="152"
+          loading="lazy"
+          title={`${sencillo.titulo} en Spotify`}
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          className="block"
+        />
+      </div>
+
+      <a
+        href={sencillo.enlace}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="kd-link-underline mt-5 inline-block font-mono text-[11px] uppercase tracking-[0.28em] text-[#a78bfa]"
+      >
+        Todas las plataformas
+      </a>
     </motion.article>
   )
 }

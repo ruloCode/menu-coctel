@@ -1,0 +1,113 @@
+/*
+ * Version imprimible del press kit de Karen Dayanna.
+ *
+ * El sitio se maqueta contra el viewport; un PDF se maqueta contra una hoja.
+ * Aqui cada seccion es una lamina de 1440x810pt — el mismo 16:9 del EPK
+ * original que Karen ya reparte — y nada depende de scroll, hover ni viewport.
+ */
+
+.hoja {
+  /* 1440x810 px a 96dpi = el 16:9 del press kit original */
+  width: 1440px;
+  height: 810px;
+  position: relative;
+  overflow: hidden;
+  background: #050509;
+  color: #fff;
+  page-break-after: always;
+  break-after: page;
+}
+.hoja:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+.hoja-pad {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  padding: 72px 88px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Numero y nombre de seccion, como los rotulos del EPK */
+.rotulo {
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #e8200c;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.rotulo::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(232, 32, 12, 0.6), rgba(167, 139, 250, 0.35), transparent);
+}
+
+.titulo-lamina {
+  font-family: var(--font-bebas), sans-serif;
+  text-transform: uppercase;
+  line-height: 0.84;
+  letter-spacing: -0.005em;
+}
+
+.cuerpo {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 300;
+}
+
+.pastilla {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  padding: 9px 24px;
+  line-height: 1;
+}
+
+.pie-hoja {
+  position: absolute;
+  left: 88px;
+  right: 88px;
+  bottom: 34px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* En pantalla las laminas se apilan centradas para poder revisarlas */
+.pliego {
+  background: #17171c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 0;
+}
+
+@media print {
+  .pliego {
+    background: none;
+    gap: 0;
+    padding: 0;
+  }
+  .hoja {
+    box-shadow: none;
+  }
+}
+
+@page {
+  size: 1440px 810px;
+  margin: 0;
+}

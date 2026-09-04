@@ -132,20 +132,22 @@ export const mockArtists: Artist[] = [
     genre: "Cancion de autor / Pop / Indie / Folk",
     meta_description: "Karen Dayanna, cantautora bogotana de cancion de autor, pop e indie. Escucha Pa' Toda la Vida y Volare, mira sus fotos y contactala para booking y prensa.",
     booking_email: "daka.musicaindependiente@gmail.com",
+    press_kit_url: "/press/press-kit-karen-dayanna.pdf",
     location: "Bogota, Colombia",
     agent_id: "1",
     photo_url: "/artists/karen-dayanna/kd-portrait.jpg",
-    hero_image_url: "/artists/karen-dayanna/kd-live-wide.jpg",
+    hero_image_url: "/artists/karen-dayanna/kd-sesion-cuarto.jpg",
     gallery: [
       "/artists/karen-dayanna/kd-portrait.jpg",
       "/artists/karen-dayanna/kd-closeup.jpg",
       "/artists/karen-dayanna/kd-blazer.jpg",
       "/artists/karen-dayanna/kd-live-01.jpg",
-      "/artists/karen-dayanna/kd-live-wide.jpg",
-      "/artists/karen-dayanna/kd-cuarto.jpg",
+      "/artists/karen-dayanna/kd-live-sala.jpg",
+      "/artists/karen-dayanna/kd-sesion-cuarto.jpg",
     ],
     social_links: {
       instagram: "https://www.instagram.com/dakaq.r/",
+      spotify: "https://open.spotify.com/artist/2KjluTBGvdPx6fU9VM726a",
       website: "https://linktr.ee/dakaq.r",
     },
     media: {
@@ -154,6 +156,8 @@ export const mockArtists: Artist[] = [
     },
     featured: true,
     shape: "portrait",
+    spotify_embed:
+      "https://open.spotify.com/embed/artist/2KjluTBGvdPx6fU9VM726a?utm_source=generator&theme=0",
   },
   {
     id: "8",

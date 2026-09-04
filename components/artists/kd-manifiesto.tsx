@@ -3,6 +3,8 @@
 import { useRef } from "react"
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
 
+import { BIOGRAFIA as PARRAFOS } from "@/app/artistas/karen-dayanna/datos"
+
 /**
  * El parrafo se enciende palabra por palabra segun avanza el scroll: cada
  * palabra tiene su propia ventana dentro del progreso de la seccion. Es el
@@ -60,11 +62,6 @@ function Palabra({
   )
 }
 
-const PARRAFOS = [
-  "Karen Dayanna es una cantautora de Bogotá con una propuesta que combina el alma de la canción de autor con influencias del pop, el indie, el folclore y el soft rock, logrando un sonido fresco y sensible.",
-  "A través de sus letras busca explorar los procesos de transformación, cargados de emoción y honestidad, invitando a quien escucha a reconocerse en ellas.",
-  "Su obra trasciende a la memoria y el recuerdo, habita y crea alrededor de la levedad del ser: viste y se abandera en la piel de todo lo sensible, lo íntimo y lo humano.",
-]
 
 export default function KdManifiesto() {
   const ref = useRef<HTMLDivElement>(null)

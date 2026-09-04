@@ -8,16 +8,27 @@ import DiagonalArrow from "@/components/diagonal-arrow"
 import PlatformLinks from "@/components/platform-links"
 import KdHero from "@/components/artists/kd-hero"
 import KdManifiesto from "@/components/artists/kd-manifiesto"
-import KdSencillos, { type Sencillo } from "@/components/artists/kd-sencillos"
-import KdGaleria, { type FotoGaleria } from "@/components/artists/kd-galeria"
+import KdSencillos from "@/components/artists/kd-sencillos"
+import KdGaleria from "@/components/artists/kd-galeria"
 import KdMarquee from "@/components/artists/kd-marquee"
-import KdCifras, { type Cifra } from "@/components/artists/kd-cifras"
+import KdCifras from "@/components/artists/kd-cifras"
 import ScrollReveal from "@/components/scroll-reveal"
+import {
+  CIFRAS,
+  CORREO,
+  FICHA,
+  FOTOS,
+  NOTA_EN_VIVO,
+  NOTA_ESCENARIO,
+  NOTA_PLATAFORMAS,
+  RIDER,
+  SENCILLOS,
+  SLUG,
+  PRESS_KIT_PDF,
+  SPOTIFY_ARTISTA,
+} from "./datos"
 
 import "./kd.css"
-
-const SLUG = "karen-dayanna"
-const CORREO = "daka.musicaindependiente@gmail.com"
 
 export const metadata = {
   title: "Karen Dayanna | MG Company Group",
@@ -45,121 +56,6 @@ export const metadata = {
     images: ["/og/og-karen-dayanna.jpg"],
   },
 }
-
-const SENCILLOS: Sencillo[] = [
-  {
-    titulo: "Pa' Toda la Vida",
-    orden: "Sencillo debut",
-    cover: "/artists/karen-dayanna/cover-pa-toda-la-vida.jpg",
-    texto:
-      "Sencillo debut con el cual Karen Dayanna abre su camino en la escena musical. La canción se despliega como un retrato honesto de las emociones que perduran en el tiempo: el amor, la memoria y los vínculos que nos marcan profundamente.",
-    enlace: "https://hypeddit.com/0twf6n",
-  },
-  {
-    titulo: "Volaré",
-    orden: "Segundo lanzamiento",
-    cover: "/artists/karen-dayanna/cover-volare.jpg",
-    texto:
-      "Una propuesta íntima que entrelaza la calidez de lo acústico con una sensibilidad moderna. A través de la metáfora del vuelo retrata el proceso de enfrentar la vida, invitando a reflexionar sobre los procesos personales y la valentía necesaria para avanzar.",
-    enlace: "https://hypeddit.com/i9pwd8",
-  },
-]
-
-const FOTOS: FotoGaleria[] = [
-  {
-    src: "/artists/karen-dayanna/kd-closeup.jpg",
-    foco: "object-[center_25%]",
-    alto: "aspect-[4/5]",
-    pie: "Retrato nocturno",
-    deriva: 28,
-  },
-  {
-    src: "/artists/karen-dayanna/kd-live-01.jpg",
-    foco: "object-[center_35%]",
-    alto: "aspect-[3/4]",
-    pie: "En vivo · La Casa de Los Amigos",
-    deriva: -34,
-  },
-  {
-    src: "/artists/karen-dayanna/kd-blazer.jpg",
-    foco: "object-[center_20%]",
-    alto: "aspect-[4/5]",
-    pie: "Sesión de prensa",
-    deriva: 20,
-  },
-  {
-    src: "/artists/karen-dayanna/kd-live-wide.jpg",
-    alto: "aspect-[16/10]",
-    pie: "Puesta en escena completa",
-    deriva: -22,
-  },
-  {
-    src: "/artists/karen-dayanna/kd-cuarto.jpg",
-    alto: "aspect-[16/10]",
-    pie: "Sesión de Pa' Toda la Vida",
-    deriva: 30,
-  },
-  {
-    src: "/artists/karen-dayanna/kd-portrait.jpg",
-    foco: "object-[center_15%]",
-    alto: "aspect-[3/4]",
-    pie: "Retrato oficial",
-    deriva: -26,
-  },
-]
-
-const CIFRAS: Cifra[] = [
-  {
-    valor: 200,
-    sufijo: "+",
-    etiqueta: "Streams",
-    fuentes: "Spotify · Soundcloud · YouTube · Pandora",
-  },
-  {
-    valor: 700,
-    sufijo: "+",
-    etiqueta: "Follows / subs",
-    fuentes: "Meta · TikTok · YouTube",
-  },
-  {
-    valor: 21.5,
-    sufijo: "K+",
-    decimales: 1,
-    etiqueta: "Views",
-    fuentes: "Alcance en redes sociales",
-  },
-]
-
-const RIDER: { titulo: string; puntos: string[] }[] = [
-  {
-    titulo: "Formato de presentación",
-    puntos: ["Solista acústico", "Solista acústico + pista"],
-  },
-  {
-    titulo: "Audio",
-    puntos: [
-      "1 micrófono para voz (Shure SM58 o equivalente)",
-      "1 caja directa para guitarra acústica",
-    ],
-  },
-  {
-    titulo: "Escenario",
-    puntos: [
-      "Espacio mínimo de 2 × 2 m",
-      "1 monitor de piso (preferible, si aplica)",
-      "Alimentación eléctrica suficiente para instrumento",
-      "Iluminación cálida o neutra (preferible)",
-    ],
-  },
-  {
-    titulo: "Presentación",
-    puntos: [
-      "Duración: 30 o 45 min",
-      "Prueba de sonido: 30 – 60 min",
-      "Rider técnico detallado disponible bajo solicitud",
-    ],
-  },
-]
 
 /** Kicker de seccion: corchetes de MG con la regla degradada a su violeta. */
 function Kicker({ indice, label }: { indice: string; label: string }) {
@@ -233,20 +129,12 @@ export default function KarenDayannaPage() {
             <aside className="lg:col-span-4">
               <div className="kd-sheen rounded-2xl border border-white/15 bg-white/[0.02] p-6 backdrop-blur-sm md:p-8">
                 <p className="kd-contrast text-lg leading-relaxed text-white/80 md:text-xl">
-                  Sus presentaciones combinan el abrazo cálido de la remembranza,
-                  la profundidad sonora y una conexión intensa con las emociones,
-                  creando experiencias inmersivas en cada escenario.
+                  {NOTA_ESCENARIO}
                 </p>
               </div>
 
               <dl className="mt-8 space-y-0">
-                {[
-                  ["Origen", "Bogotá, Colombia"],
-                  ["Género", "Canción de autor · Pop · Indie · Folk"],
-                  ["Formato", "Solista acústico · Solista + pista"],
-                  ["Movilidad", "Nacional e internacional"],
-                  ["Sello", "MG Company Group"],
-                ].map(([k, v]) => (
+                {FICHA.map(([k, v]) => (
                   <div
                     key={k}
                     className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-white/10 py-4"
@@ -286,7 +174,7 @@ export default function KarenDayannaPage() {
       {/* 03 — En vivo + rider */}
       <section className="relative overflow-hidden border-t border-white/10">
         <Image
-          src="/artists/karen-dayanna/kd-live-wide.jpg"
+          src="/artists/karen-dayanna/kd-live-sala.jpg"
           alt=""
           aria-hidden="true"
           fill
@@ -305,12 +193,7 @@ export default function KarenDayannaPage() {
               <div className="lg:col-span-5">
                 <ScrollReveal>
                   <p className="kd-contrast text-xl leading-relaxed text-white/80 md:text-2xl">
-                    Cada presentación de Karen Dayanna propone un espacio íntimo
-                    donde la música se convierte en refugio. A través de una
-                    puesta en escena cálida y cercana, el público recorre
-                    historias de memoria y transformación, creando una
-                    experiencia que trasciende el concierto para convertirse en
-                    un encuentro emocional.
+                    {NOTA_EN_VIVO}
                   </p>
                 </ScrollReveal>
               </div>
@@ -383,14 +266,23 @@ export default function KarenDayannaPage() {
             <div className="lg:col-span-5">
               <ScrollReveal>
                 <p className="kd-contrast text-xl leading-relaxed text-white/80 md:text-2xl">
-                  A través de plataformas digitales, performances en vivo y
-                  eventos, Karen abre su camino en la escena emergente,
-                  posicionándose como una de las voces frescas que apuestan por
-                  la autenticidad en la música independiente de Bogotá.
+                  {NOTA_PLATAFORMAS}
                 </p>
               </ScrollReveal>
               <div className="mt-8">
                 <PlatformLinks links={karen?.social_links ?? {}} />
+              </div>
+
+              <div className="mt-8 overflow-hidden rounded-xl border border-white/10">
+                <iframe
+                  src={`https://open.spotify.com/embed/artist/${SPOTIFY_ARTISTA}?utm_source=generator&theme=0`}
+                  width="100%"
+                  height="352"
+                  loading="lazy"
+                  title="Karen Dayanna en Spotify"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  className="block"
+                />
               </div>
             </div>
 
@@ -497,16 +389,19 @@ export default function KarenDayannaPage() {
                 </button>
               </BookingDialog>
 
-              <BookingDialog artistName="Karen Dayanna" intent="press-kit">
-                <button className="group inline-flex items-center gap-3 rounded-full border border-white/60 px-8 py-4 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black">
-                  <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
-                    Kit de prensa
-                  </span>
-                  <span className="transition-transform duration-300 group-hover:translate-x-1">
-                    <DiagonalArrow size={18} strokeWidth={1.75} />
-                  </span>
-                </button>
-              </BookingDialog>
+              {/* El kit ya existe como PDF: no hay por que pedirlo por formulario */}
+              <a
+                href={PRESS_KIT_PDF}
+                download
+                className="group inline-flex items-center gap-3 rounded-full border border-white/60 px-8 py-4 text-white transition-colors duration-300 hover:border-white hover:bg-white hover:text-mg-black"
+              >
+                <span className="font-mono text-xs font-medium uppercase tracking-[0.3em] md:text-sm">
+                  Descargar kit de prensa
+                </span>
+                <span className="transition-transform duration-300 group-hover:translate-x-1">
+                  <DiagonalArrow size={18} strokeWidth={1.75} />
+                </span>
+              </a>
             </div>
           </div>
 
