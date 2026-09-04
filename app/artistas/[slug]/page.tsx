@@ -15,11 +15,17 @@ interface ArtistPageProps {
   }>
 }
 
+// Artistas con pagina propia bajo app/artistas/<slug>/: la ruta estatica gana
+// sobre esta dinamica, asi que no hay que prerenderizarlos aqui.
+const RUTAS_PROPIAS = new Set(["karen-dayanna"])
+
 export async function generateStaticParams() {
   const artists = getAllArtists()
-  return artists.map((artist) => ({
-    slug: artist.slug,
-  }))
+  return artists
+    .filter((artist) => !RUTAS_PROPIAS.has(artist.slug))
+    .map((artist) => ({
+      slug: artist.slug,
+    }))
 }
 
 export async function generateMetadata({ params }: ArtistPageProps) {
